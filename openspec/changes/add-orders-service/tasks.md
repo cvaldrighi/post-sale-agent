@@ -31,10 +31,10 @@
 
 ## 6. Estornos
 
-- [ ] 6.1 Implementar as regras de estorno (estado do pagamento, valor estornável, status `completed` para Pix e `processing` para cartão) e verificar com testes unitários
-- [ ] 6.2 Implementar `POST /refunds` com transação e `SELECT ... FOR UPDATE` no pagamento; verificar com testes E2E de estorno total de Pix, parcial de cartão, pagamento pendente, já estornado, valor acima do estornável, corpo inválido e pedido inexistente, todos validados contra o contrato
-- [ ] 6.3 Implementar a idempotência (chave obrigatória, replay com `Idempotent-Replayed: true`, chave reutilizada com outro corpo); verificar com testes E2E dos três cenários
-- [ ] 6.4 Verificar com teste E2E que duas requisições simultâneas de estorno total do mesmo pagamento resultam em exatamente um estorno
+- [x] 6.1 Implementar as regras de estorno (estado do pagamento, valor estornável, status `completed` para Pix e `processing` para cartão) e verificar com testes unitários
+- [x] 6.2 Implementar `POST /refunds` com transação e `SELECT ... FOR UPDATE` no pagamento; verificar com testes E2E de estorno total de Pix, parcial de cartão, pagamento pendente, já estornado, valor acima do estornável, corpo inválido e pedido inexistente, todos validados contra o contrato
+- [x] 6.3 Implementar a idempotência (chave obrigatória, replay com `Idempotent-Replayed: true`, chave reutilizada com outro corpo); verificar com testes E2E dos três cenários
+- [x] 6.4 Verificar com teste E2E que duas requisições simultâneas de estorno total do mesmo pagamento resultam em exatamente um estorno
 
 ## 7. Docker e documentação
 

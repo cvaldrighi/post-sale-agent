@@ -22,5 +22,30 @@ services:
       timeout: 3s
       retries: 10
 
+  orders:
+    build: ./services/orders
+    environment:
+      PORT: 3002
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB:-post_sale}
+      DATABASE_USER: orders_service
+      DATABASE_PASSWORD: ${ORDERS_DB_PASSWORD:?defina no .env}
+      ORDERS_API_KEY: ${ORDERS_API_KEY:?defina no .env}
+      ORDERS_SIMULATION_ENABLED: "true"
+      ORDERS_SIMULATED_DELAY_MS: 5000
+      LOG_LEVEL: info
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3002/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
 volumes:
   pgdata:

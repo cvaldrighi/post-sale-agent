@@ -125,7 +125,7 @@ describe('POST /refunds (e2e)', () => {
 
       const responses = await Promise.all([refund(body), refund(body)]); // chaves diferentes
 
-      expect(responses.map((r) => r.status).sort()).toEqual([201, 409]);
+      expect(responses.map((r) => r.status).sort((a, b) => a - b)).toEqual([201, 409]);
       expect((await payment('ord_1001')).refundedAmountCents).toBe(18990);
     });
   });
