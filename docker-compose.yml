@@ -1,0 +1,26 @@
+name: post-sale-agent
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      # Senhas sem valor padrão: o Compose recusa subir se faltarem no .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina no .env}
+      POSTGRES_DB: ${POSTGRES_DB:-post_sale}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?defina no .env}
+      RETRIEVAL_DB_PASSWORD: ${RETRIEVAL_DB_PASSWORD:?defina no .env}
+      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD:?defina no .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

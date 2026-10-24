@@ -1,0 +1,24 @@
+# Dependências e build
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+
+# Sistema e editores
+.DS_Store
+.idea/
+.vscode/
+*.log

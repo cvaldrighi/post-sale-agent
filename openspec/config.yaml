@@ -1,0 +1,66 @@
+schema: spec-driven
+
+context: |
+  Idioma
+  - Artefatos do OpenSpec (proposal, design, specs, tasks) são escritos em português do Brasil.
+  - Mantenha em inglês as palavras estruturais do formato, para a validação funcionar:
+    "Requirement", "Scenario", "WHEN", "THEN", "AND", "SHALL"/"MUST", e os títulos
+    "ADDED/MODIFIED/REMOVED/RENAMED Requirements".
+  - Código, identificadores, nomes de arquivos, mensagens de commit e títulos de PR em inglês.
+
+  Produto
+  - PoC de portfólio: assistente de pós-venda de e-commerce com um agente de IA. O cliente pergunta
+    sobre pedidos, pagamentos e políticas; o agente escolhe ferramentas para responder.
+  - Foco em backend. Não há frontend: demonstração por Swagger UI, curl e scripts.
+  - Prazo curto: preferir a solução mais simples que demonstre o conceito; registrar no design
+    o que ficaria diferente em produção.
+
+  Arquitetura (monorepo)
+  - services/api: Node.js + NestJS + TypeORM. API pública, autenticação, orquestração do agente
+    (loop de tool calling escrito com o SDK, sem LangChain/LangGraph), guardrails, prompts,
+    aprovação humana e logs.
+  - services/retrieval: Python + FastAPI + LangChain. Ingestão e busca semântica das políticas (RAG).
+    LangChain só para componentes (splitter, embeddings, integração com pgvector), nunca para
+    decisões de fluxo.
+  - services/orders: Node.js. Simula a API de pedidos e pagamentos de um terceiro, com dados fixos
+    e falhas/latência configuráveis.
+  - Postgres + pgvector único, com um schema por serviço (app, retrieval, orders) e um usuário de
+    banco por serviço, dono só do próprio schema. Nenhum serviço acessa o schema de outro; a
+    comunicação entre serviços é só por HTTP. Tabelas são criadas por migrations do próprio serviço.
+  - Contratos OpenAPI em contracts/. retrieval é code-first (o FastAPI gera o arquivo, que é
+    versionado); orders é contract-first (o arquivo é escrito antes do código). A api gera tipos
+    TypeScript a partir dos contratos e valida respostas em tempo de execução (Zod).
+  - LLM e embeddings atrás de interfaces de provedor: Amazon Bedrock (Converse API, Claude Haiku;
+    Titan Text Embeddings V2) e Ollama local (qwen2.5:7b; nomic-embed-text), escolhidos por variável
+    de ambiente. Trocar o provedor de embeddings exige reindexar.
+  - Só o Bedrock roda na AWS (us-east-1). O resto roda no Docker Compose. Credenciais da AWS vêm
+    do perfil da CLI, nunca do repositório.
+
+  Regras de segurança (valem para todas as changes)
+  - A LLM nunca decide autorização: a identidade do cliente vem do JWT, e cada ferramenta confere
+    no código se o recurso pertence ao cliente.
+  - Ferramentas de escrita (ex.: estorno) nunca executam direto: geram uma ação pendente que o
+    cliente precisa aprovar.
+  - Conteúdo vindo de documentos e de APIs é dado não confiável no prompt, nunca instrução.
+  - Dados pessoais (CPF, cartão) são mascarados antes de ir para a LLM e para os logs.
+
+  Observabilidade
+  - Logs estruturados em JSON nos três serviços, com correlation ID propagado no header
+    x-correlation-id. Cada chamada à LLM registra modelo, tokens, latência e ferramentas pedidas.
+
+  Forma de trabalhar
+  - Uma change = uma branch = um PR. Nunca commitar direto na branch principal.
+  - Mudanças que não alteram comportamento nem contrato (refactor, docs, dependências) não precisam
+    de change.
+
+rules:
+  proposal:
+    - Seja curto (até ~300 palavras) e sempre liste o que está fora do escopo.
+  design:
+    - Registre as alternativas consideradas e por que foram descartadas.
+    - Inclua uma seção curta "Em produção" quando a solução for simplificada para a PoC.
+  specs:
+    - Cada requisito tem ao menos um cenário verificável por teste automatizado.
+  tasks:
+    - Cada tarefa é pequena e verificável; inclua as tarefas de teste junto da funcionalidade.
+    - Termine com uma tarefa de verificação manual (comando ou requisição de exemplo).
