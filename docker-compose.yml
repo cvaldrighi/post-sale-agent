@@ -1,0 +1,25 @@
+name: post-sale-agent
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-post_sale}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-app_dev_password}
+      RETRIEVAL_DB_PASSWORD: ${RETRIEVAL_DB_PASSWORD:-retrieval_dev_password}
+      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD:-orders_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
