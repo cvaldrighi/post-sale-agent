@@ -5,11 +5,12 @@ services:
     image: pgvector/pgvector:pg17
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      # Senhas sem valor padrão: o Compose recusa subir se faltarem no .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina no .env}
       POSTGRES_DB: ${POSTGRES_DB:-post_sale}
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-app_dev_password}
-      RETRIEVAL_DB_PASSWORD: ${RETRIEVAL_DB_PASSWORD:-retrieval_dev_password}
-      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD:-orders_dev_password}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?defina no .env}
+      RETRIEVAL_DB_PASSWORD: ${RETRIEVAL_DB_PASSWORD:?defina no .env}
+      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD:?defina no .env}
     ports:
       - "5432:5432"
     volumes:

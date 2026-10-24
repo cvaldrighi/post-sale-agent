@@ -72,7 +72,7 @@ post-sale-agent/
 Pré-requisitos: Docker (ou OrbStack).
 
 ```bash
-cp .env.example .env
+cp .env.example .env       # e preencha as senhas (o .env fica fora do git)
 docker compose up -d postgres
 docker compose ps          # postgres deve aparecer como "healthy"
 ```
