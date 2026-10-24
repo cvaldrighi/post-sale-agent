@@ -72,7 +72,7 @@ post-sale-agent/
 Pré-requisitos: Docker (ou OrbStack).
 
 ```bash
-cp .env.example .env       # e preencha as senhas e a ORDERS_API_KEY (o .env fica fora do git)
+cp .env.example .env       # preencha as senhas, ORDERS_API_KEY e JWT_SECRET (o .env fica fora do git)
 docker compose up -d
 docker compose ps          # todos os serviços devem aparecer como "healthy"
 ```
@@ -81,5 +81,5 @@ docker compose ps          # todos os serviços devem aparecer como "healthy"
 |---|---|---|---|
 | `postgres` | 5432 | pronto | [`infra/postgres`](infra/postgres/init/01-schemas.sh) |
 | `orders` | 3002 | pronto | [`services/orders`](services/orders/README.md) |
-| `api` | 3000 | em construção | |
+| `api` | 3000 | pronto | [`services/api`](services/api/README.md) · Swagger em http://localhost:3000/docs |
 | `retrieval` | 8000 | em construção | |
