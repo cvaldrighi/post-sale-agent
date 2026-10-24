@@ -293,7 +293,7 @@ components:
 
     OrderStatus:
       type: string
-      enum: [paid, shipped, delayed, delivered, canceled]
+      enum: [awaiting_payment, paid, shipped, delayed, delivered, canceled]
 
     OrderSummary:
       type: object

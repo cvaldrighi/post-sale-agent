@@ -6,9 +6,9 @@
 
 ## 2. Estrutura do serviço
 
-- [ ] 2.1 Criar o projeto NestJS em `services/orders` (TypeScript estrito, ESLint, Prettier, Jest) e verificar que `npm run build` e `npm run lint` passam
-- [ ] 2.2 Adicionar a configuração com validação das variáveis de ambiente e verificar que o serviço recusa iniciar sem `ORDERS_API_KEY`
-- [ ] 2.3 Configurar o TypeORM com o usuário `orders_service`, schema `orders`, `synchronize: false` e migrations; verificar que o serviço conecta ao Postgres do Compose
+- [x] 2.1 Criar o projeto NestJS em `services/orders` (TypeScript estrito, ESLint, Prettier, Jest) e verificar que `npm run build` e `npm run lint` passam
+- [x] 2.2 Adicionar a configuração com validação das variáveis de ambiente e verificar que o serviço recusa iniciar sem `ORDERS_API_KEY`
+- [x] 2.3 Configurar o TypeORM com o usuário `orders_service`, schema `orders`, `synchronize: false` e migrations; verificar que o serviço conecta ao Postgres do Compose
 
 ## 3. Banco de dados
 

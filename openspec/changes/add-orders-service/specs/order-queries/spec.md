@@ -25,7 +25,7 @@ do cliente, do mais recente para o mais antigo. Cada resumo contém `id`, `statu
 O serviço SHALL responder `GET /orders/{orderId}` com o pedido completo: `id`, `customerId`,
 `status`, `items` (com `sku`, `name`, `quantity`, `unitPriceCents`), `totalCents`, `currency`,
 `createdAt`, `estimatedDeliveryDate`, `deliveredAt` e os dados do cliente (`name` e `document`).
-O `status` é um de `paid`, `shipped`, `delayed`, `delivered` ou `canceled`.
+O `status` é um de `awaiting_payment`, `paid`, `shipped`, `delayed`, `delivered` ou `canceled`.
 
 #### Scenario: Pedido existente
 - **WHEN** a requisição pede o pedido `ord_1001`

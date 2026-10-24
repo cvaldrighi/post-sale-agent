@@ -47,7 +47,7 @@ Dados de exemplo:
 | `ord_1002` | `cust_001` | `delivered` | cartão, `confirmed` | 34900 | estorno parcial de cartão |
 | `ord_1003` | `cust_001` | `shipped` | Pix, `confirmed` | 7990 | consulta |
 | `ord_2001` | `cust_002` | `canceled` | cartão, `refunded` | 12900 | estorno recusado (já estornado) |
-| `ord_2002` | `cust_002` | `paid` | Pix, `pending` | 5990 | estorno recusado (pendente) |
+| `ord_2002` | `cust_002` | `awaiting_payment` | Pix, `pending` | 5990 | estorno recusado (pendente) |
 
 Os clientes têm nome e CPF de teste. O CPF é retornado completo, de propósito: mascarar dados
 pessoais antes de chegarem à LLM é responsabilidade da `api` (change `add-guardrails`).
