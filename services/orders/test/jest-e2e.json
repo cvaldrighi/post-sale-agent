@@ -5,5 +5,9 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "setupFiles": ["<rootDir>/setup-env.ts"],
+  "setupFilesAfterEnv": ["<rootDir>/setup-contract.ts"],
+  "maxWorkers": 1,
+  "testTimeout": 15000
 }

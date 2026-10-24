@@ -22,7 +22,8 @@ existe nenhum serviço. Motivação em proposal.md; comportamento esperado nas s
 
 ### 1. Contract-first com `contracts/orders.yaml` (OpenAPI 3.1)
 O contrato é escrito primeiro e revisado; o código implementa o contrato. Os testes usam um
-validador de respostas OpenAPI (`jest-openapi`) para falhar se alguma resposta divergir.
+matcher próprio (`toMatchContract`) que valida cada resposta com o Ajv contra os schemas do
+contrato. O `jest-openapi`, previsto inicialmente, só suporta OpenAPI 3.0 (ver Riscos).
 - Alternativa: gerar o contrato a partir do código (code-first, como no `retrieval`). Descartada
   aqui porque, com um terceiro, o contrato é combinado antes de existir código dos dois lados.
 - Alternativa: Prism (mock gerado a partir do OpenAPI). Descartada porque não guarda estado, e a

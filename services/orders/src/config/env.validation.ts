@@ -4,6 +4,7 @@ import 'reflect-metadata';
 import { plainToInstance, Transform } from 'class-transformer';
 import {
   IsBoolean,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsString,
@@ -59,6 +60,9 @@ export class EnvironmentVariables {
   @IsInt()
   @Min(0)
   ORDERS_SIMULATED_DELAY_MS: number = 5000;
+
+  @IsIn(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+  LOG_LEVEL: string = 'info';
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

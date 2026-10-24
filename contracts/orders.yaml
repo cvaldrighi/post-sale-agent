@@ -473,4 +473,5 @@ components:
             - amount_exceeds_refundable
             - simulated_failure
             - service_unavailable
+            - not_found
             - internal_error

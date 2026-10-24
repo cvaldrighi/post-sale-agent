@@ -12,22 +12,22 @@
 
 ## 3. Banco de dados
 
-- [ ] 3.1 Criar as entidades e a migration das tabelas `customers`, `orders`, `payments` e `refunds` (com `idempotency_key` única e `request_hash`); verificar com `npm run migration:run` e `\dt orders.*` no psql
-- [ ] 3.2 Criar a migration de seed com os dados de exemplo do design; verificar que `SELECT count(*) FROM orders.orders` retorna 5
+- [x] 3.1 Criar as entidades e a migration das tabelas `customers`, `orders`, `payments` e `refunds` (com `idempotency_key` única e `request_hash`); verificar com `npm run migration:run` e `\dt orders.*` no psql
+- [x] 3.2 Criar a migration de seed com os dados de exemplo do design; verificar que `SELECT count(*) FROM orders.orders` retorna 5
 
 ## 4. Operação do serviço
 
-- [ ] 4.1 Implementar o filtro global de erros em problem+json com `code`; verificar com teste unitário do filtro
-- [ ] 4.2 Implementar o guard de `x-api-key` (comparação em tempo constante, `/health` liberado) e verificar com testes E2E de 401 e 200
-- [ ] 4.3 Implementar `GET /health` com checagem do banco e verificar com teste E2E
-- [ ] 4.4 Configurar logs JSON com `nestjs-pino` e correlation ID (recebido ou gerado, devolvido no header); verificar com teste E2E do header
-- [ ] 4.5 Implementar o interceptor de `x-simulate` (`slow` e `error`, só com a simulação habilitada) e verificar com testes E2E dos três cenários da spec
+- [x] 4.1 Implementar o filtro global de erros em problem+json com `code`; verificar com teste unitário do filtro
+- [x] 4.2 Implementar o guard de `x-api-key` (comparação em tempo constante, `/health` liberado) e verificar com testes E2E de 401 e 200
+- [x] 4.3 Implementar `GET /health` com checagem do banco e verificar com teste E2E
+- [x] 4.4 Configurar logs JSON com `nestjs-pino` e correlation ID (recebido ou gerado, devolvido no header); verificar com teste E2E do header
+- [x] 4.5 Implementar o interceptor de `x-simulate` (`slow` e `error`, só com a simulação habilitada) e verificar com testes E2E dos três cenários da spec
 
 ## 5. Consultas
 
-- [ ] 5.1 Implementar `GET /customers/{customerId}/orders` e verificar com testes E2E (com pedidos, sem pedidos, ordenação) validados contra o contrato
-- [ ] 5.2 Implementar `GET /orders/{orderId}` e verificar com testes E2E (existente, inexistente) validados contra o contrato
-- [ ] 5.3 Implementar `GET /orders/{orderId}/payment` e verificar com testes E2E (Pix, cartão só com `cardLast4`, inexistente) validados contra o contrato
+- [x] 5.1 Implementar `GET /customers/{customerId}/orders` e verificar com testes E2E (com pedidos, sem pedidos, ordenação) validados contra o contrato
+- [x] 5.2 Implementar `GET /orders/{orderId}` e verificar com testes E2E (existente, inexistente) validados contra o contrato
+- [x] 5.3 Implementar `GET /orders/{orderId}/payment` e verificar com testes E2E (Pix, cartão só com `cardLast4`, inexistente) validados contra o contrato
 
 ## 6. Estornos
 
