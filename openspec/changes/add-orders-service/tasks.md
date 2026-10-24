@@ -2,7 +2,7 @@
 
 ## 1. Contrato
 
-- [ ] 1.1 Escrever `contracts/orders.yaml` (OpenAPI 3.1) com os endpoints, schemas de pedido, pagamento, estorno e erro problem+json, headers `x-api-key`, `Idempotency-Key`, `x-correlation-id` e `x-simulate`; verificar com `npx @redocly/cli lint contracts/orders.yaml` sem erros
+- [x] 1.1 Escrever `contracts/orders.yaml` (OpenAPI 3.1) com os endpoints, schemas de pedido, pagamento, estorno e erro problem+json, headers `x-api-key`, `Idempotency-Key`, `x-correlation-id` e `x-simulate`; verificar com `npx @redocly/cli lint contracts/orders.yaml` sem erros
 
 ## 2. Estrutura do serviço
 
