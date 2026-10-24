@@ -1,0 +1,477 @@
+openapi: 3.1.0
+info:
+  title: Orders API
+  version: 1.0.0
+  description: |
+    API simulada de pedidos e pagamentos de um e-commerce, consumida pela `api` do
+    post-sale-agent. Representa um sistema de terceiro: este contrato é a fonte da verdade
+    (contract-first) e o serviço `services/orders` o implementa.
+
+    Convenções:
+    - Valores monetários em centavos inteiros (campos `*Cents`), com `currency` ISO 4217.
+    - Datas em ISO 8601, UTC.
+    - Erros no formato problem+json (RFC 9457), com um `code` estável.
+
+servers:
+  - url: http://localhost:3002
+    description: Docker Compose local
+
+security:
+  - apiKey: []
+
+tags:
+  - name: orders
+    description: Consulta de pedidos e pagamentos
+  - name: refunds
+    description: Estornos
+  - name: operations
+    description: Saúde do serviço
+
+paths:
+  /health:
+    get:
+      tags: [operations]
+      operationId: getHealth
+      summary: Verifica se o serviço e o banco estão disponíveis
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Serviço saudável
+          headers:
+            x-correlation-id:
+              $ref: "#/components/headers/CorrelationId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /customers/{customerId}/orders:
+    get:
+      tags: [orders]
+      operationId: listCustomerOrders
+      summary: Lista os pedidos de um cliente, do mais recente para o mais antigo
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/Simulate"
+      responses:
+        "200":
+          description: Lista de pedidos (vazia se o cliente não tiver pedidos ou não existir)
+          headers:
+            x-correlation-id:
+              $ref: "#/components/headers/CorrelationId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OrderSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /orders/{orderId}:
+    get:
+      tags: [orders]
+      operationId: getOrder
+      summary: Consulta um pedido
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/Simulate"
+      responses:
+        "200":
+          description: Pedido encontrado
+          headers:
+            x-correlation-id:
+              $ref: "#/components/headers/CorrelationId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/OrderNotFound"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /orders/{orderId}/payment:
+    get:
+      tags: [orders]
+      operationId: getOrderPayment
+      summary: Consulta o pagamento de um pedido
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/Simulate"
+      responses:
+        "200":
+          description: Pagamento do pedido
+          headers:
+            x-correlation-id:
+              $ref: "#/components/headers/CorrelationId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/OrderNotFound"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /refunds:
+    post:
+      tags: [refunds]
+      operationId: createRefund
+      summary: Solicita o estorno total ou parcial do pagamento de um pedido
+      description: |
+        Exige `Idempotency-Key`. A mesma chave com o mesmo corpo devolve o estorno original
+        (200, `Idempotent-Replayed: true`); a mesma chave com outro corpo é recusada (422).
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/Simulate"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRefundRequest"
+      responses:
+        "201":
+          description: Estorno criado
+          headers:
+            x-correlation-id:
+              $ref: "#/components/headers/CorrelationId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Refund"
+        "200":
+          description: Requisição repetida com a mesma chave e o mesmo corpo; devolve o estorno original
+          headers:
+            x-correlation-id:
+              $ref: "#/components/headers/CorrelationId"
+            Idempotent-Replayed:
+              description: Sempre `true` nesta resposta
+              schema:
+                type: string
+                const: "true"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Refund"
+        "400":
+          description: "`idempotency_key_required` ou `validation_error`"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/OrderNotFound"
+        "409":
+          description: "`payment_not_refundable`: o pagamento não está confirmado ou já foi estornado"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "422":
+          description: "`amount_exceeds_refundable` ou `idempotency_key_reused`"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Chave compartilhada entre a `api` e este serviço
+
+  parameters:
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+        examples: [cust_001]
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+        examples: [ord_1001]
+    CorrelationId:
+      name: x-correlation-id
+      in: header
+      required: false
+      description: Identificador da requisição para rastreamento; gerado pelo serviço se ausente
+      schema:
+        type: string
+        maxLength: 128
+    Simulate:
+      name: x-simulate
+      in: header
+      required: false
+      description: Simula lentidão (`slow`) ou falha (`error`) quando a simulação está habilitada
+      schema:
+        type: string
+        enum: [slow, error]
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Identifica a solicitação; repetir a chave não cria um novo estorno
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+
+  headers:
+    CorrelationId:
+      description: O mesmo valor recebido em `x-correlation-id`, ou o gerado pelo serviço
+      schema:
+        type: string
+
+  responses:
+    Unauthorized:
+      description: "`unauthorized`: chave de API ausente ou inválida"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    OrderNotFound:
+      description: "`order_not_found`"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    ServiceUnavailable:
+      description: "`simulated_failure` ou `service_unavailable`"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          const: ok
+
+    Money:
+      type: integer
+      minimum: 0
+      description: Valor em centavos
+
+    Currency:
+      type: string
+      const: BRL
+
+    OrderStatus:
+      type: string
+      enum: [awaiting_payment, paid, shipped, delayed, delivered, canceled]
+
+    OrderSummary:
+      type: object
+      additionalProperties: false
+      required: [id, status, totalCents, currency, createdAt]
+      properties:
+        id:
+          type: string
+          examples: [ord_1001]
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        totalCents:
+          $ref: "#/components/schemas/Money"
+        currency:
+          $ref: "#/components/schemas/Currency"
+        createdAt:
+          type: string
+          format: date-time
+
+    OrderItem:
+      type: object
+      additionalProperties: false
+      required: [sku, name, quantity, unitPriceCents]
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        unitPriceCents:
+          $ref: "#/components/schemas/Money"
+
+    Customer:
+      type: object
+      additionalProperties: false
+      required: [name, document]
+      properties:
+        name:
+          type: string
+        document:
+          type: string
+          description: CPF do cliente (dado pessoal; quem consome deve mascarar antes de expor)
+          examples: ["123.456.789-09"]
+
+    Order:
+      type: object
+      additionalProperties: false
+      required:
+        [id, customerId, customer, status, items, totalCents, currency, createdAt, estimatedDeliveryDate, deliveredAt]
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        customer:
+          $ref: "#/components/schemas/Customer"
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        totalCents:
+          $ref: "#/components/schemas/Money"
+        currency:
+          $ref: "#/components/schemas/Currency"
+        createdAt:
+          type: string
+          format: date-time
+        estimatedDeliveryDate:
+          type: string
+          format: date
+        deliveredAt:
+          type: [string, "null"]
+          format: date-time
+
+    PaymentStatus:
+      type: string
+      enum: [pending, confirmed, failed, partially_refunded, refunded]
+
+    Payment:
+      type: object
+      additionalProperties: false
+      required: [id, orderId, method, status, amountCents, refundedAmountCents, currency, paidAt, cardLast4]
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        method:
+          type: string
+          enum: [pix, credit_card]
+        status:
+          $ref: "#/components/schemas/PaymentStatus"
+        amountCents:
+          $ref: "#/components/schemas/Money"
+        refundedAmountCents:
+          $ref: "#/components/schemas/Money"
+        currency:
+          $ref: "#/components/schemas/Currency"
+        paidAt:
+          type: [string, "null"]
+          format: date-time
+        cardLast4:
+          type: [string, "null"]
+          pattern: "^[0-9]{4}$"
+          description: Últimos 4 dígitos do cartão; `null` para Pix
+
+    CreateRefundRequest:
+      type: object
+      additionalProperties: false
+      required: [orderId, amountCents, reason]
+      properties:
+        orderId:
+          type: string
+        amountCents:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    RefundStatus:
+      type: string
+      enum: [processing, completed]
+
+    Refund:
+      type: object
+      additionalProperties: false
+      required: [id, orderId, paymentId, amountCents, currency, reason, status, createdAt]
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        paymentId:
+          type: string
+        amountCents:
+          $ref: "#/components/schemas/Money"
+        currency:
+          $ref: "#/components/schemas/Currency"
+        reason:
+          type: string
+        status:
+          $ref: "#/components/schemas/RefundStatus"
+        createdAt:
+          type: string
+          format: date-time
+
+    Problem:
+      type: object
+      description: Erro no formato RFC 9457 (problem+json)
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          examples: ["https://post-sale-agent.dev/problems/order-not-found"]
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+          enum:
+            - unauthorized
+            - validation_error
+            - idempotency_key_required
+            - idempotency_key_reused
+            - order_not_found
+            - payment_not_refundable
+            - amount_exceeds_refundable
+            - simulated_failure
+            - service_unavailable
+            - not_found
+            - internal_error

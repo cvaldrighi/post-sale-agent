@@ -72,9 +72,14 @@ post-sale-agent/
 Pré-requisitos: Docker (ou OrbStack).
 
 ```bash
-cp .env.example .env       # e preencha as senhas (o .env fica fora do git)
-docker compose up -d postgres
-docker compose ps          # postgres deve aparecer como "healthy"
+cp .env.example .env       # e preencha as senhas e a ORDERS_API_KEY (o .env fica fora do git)
+docker compose up -d
+docker compose ps          # todos os serviços devem aparecer como "healthy"
 ```
 
-Os serviços serão adicionados ao Compose conforme forem implementados.
+| Serviço | Porta | Status | Documentação |
+|---|---|---|---|
+| `postgres` | 5432 | pronto | [`infra/postgres`](infra/postgres/init/01-schemas.sh) |
+| `orders` | 3002 | pronto | [`services/orders`](services/orders/README.md) |
+| `api` | 3000 | em construção | |
+| `retrieval` | 8000 | em construção | |
