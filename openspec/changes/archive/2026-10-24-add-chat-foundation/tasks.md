@@ -30,12 +30,12 @@
 ## 6. Docker e documentação
 
 - [x] 6.1 Configurar o Swagger UI em `/docs` com autenticação Bearer e verificar abrindo no navegador
-- [ ] 6.2 Criar o `Dockerfile`, adicionar o serviço `api` ao Compose (Ollama via `host.docker.internal`) e `JWT_SECRET` vazio ao `.env.example`; verificar que `docker compose up -d api` fica healthy
-- [ ] 6.3 Documentar em `services/api/README.md` e atualizar o README principal; verificar que os comandos documentados funcionam
+- [x] 6.2 Criar o `Dockerfile`, adicionar o serviço `api` ao Compose (Ollama via `host.docker.internal`) e `JWT_SECRET` vazio ao `.env.example`; verificar que `docker compose up -d api` fica healthy
+- [x] 6.3 Documentar em `services/api/README.md` e atualizar o README principal; verificar que os comandos documentados funcionam
 
 ## 7. Verificação manual
 
-- [ ] 7.1 Com o Compose e o Ollama rodando: obter um token para `cust_001`, criar uma conversa, enviar "Olá, o que você pode fazer por mim?", receber a resposta e conferir o registro em `app.llm_calls`
+- [x] 7.1 Com o Compose e o Ollama rodando: obter um token para `cust_001`, criar uma conversa, enviar "Olá, o que você pode fazer por mim?", receber a resposta e conferir o registro em `app.llm_calls`
 
 ## Workflow follow-up
 
