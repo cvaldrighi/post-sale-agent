@@ -38,12 +38,12 @@
 
 ## 7. Docker e documentação
 
-- [ ] 7.1 Criar o `Dockerfile` (multi-stage) e adicionar o serviço `orders` ao `docker-compose.yml`, com healthcheck e dependência do Postgres; adicionar `ORDERS_API_KEY` vazia ao `.env.example`; verificar que `docker compose up -d orders` fica healthy
-- [ ] 7.2 Documentar o serviço em `services/orders/README.md` (como rodar, testar e exemplos de requisição) e atualizar o README principal; verificar que os comandos documentados funcionam como escritos
+- [x] 7.1 Criar o `Dockerfile` (multi-stage) e adicionar o serviço `orders` ao `docker-compose.yml`, com healthcheck e dependência do Postgres; adicionar `ORDERS_API_KEY` vazia ao `.env.example`; verificar que `docker compose up -d orders` fica healthy
+- [x] 7.2 Documentar o serviço em `services/orders/README.md` (como rodar, testar e exemplos de requisição) e atualizar o README principal; verificar que os comandos documentados funcionam como escritos
 
 ## 8. Verificação manual
 
-- [ ] 8.1 Com o Compose rodando, executar: consultar `ord_1001`, pedir o estorno total com uma `Idempotency-Key`, repetir a mesma requisição (deve voltar o mesmo estorno com `Idempotent-Replayed: true`) e consultar o pagamento (deve estar `refunded`)
+- [x] 8.1 Com o Compose rodando, executar: consultar `ord_1001`, pedir o estorno total com uma `Idempotency-Key`, repetir a mesma requisição (deve voltar o mesmo estorno com `Idempotent-Replayed: true`) e consultar o pagamento (deve estar `refunded`)
 
 ## Workflow follow-up
 
