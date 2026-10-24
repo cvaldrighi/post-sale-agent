@@ -47,5 +47,38 @@ services:
       retries: 5
       start_period: 10s
 
+  api:
+    build: ./services/api
+    environment:
+      PORT: 3000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB:-post_sale}
+      DATABASE_USER: app_service
+      DATABASE_PASSWORD: ${APP_DB_PASSWORD:?defina no .env}
+      JWT_SECRET: ${JWT_SECRET:?defina no .env}
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:7b}
+      LLM_TIMEOUT_MS: 60000
+      # O Ollama roda no Mac, fora do Compose; host.docker.internal aponta para o Mac
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      # Bedrock: credenciais do perfil da AWS CLI, montado como somente leitura (só em dev)
+      AWS_REGION: us-east-1
+      AWS_PROFILE: ${AWS_PROFILE:-post-sale-agent}
+      LOG_LEVEL: info
+    volumes:
+      - ~/.aws:/home/node/.aws:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
 volumes:
   pgdata:
