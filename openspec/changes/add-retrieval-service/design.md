@@ -55,6 +55,11 @@ Duas listas de até 20 candidatos: por distância de cosseno (índice HNSW) e po
 `websearch_to_tsquery('portuguese', ...)` (índice GIN numa coluna `tsvector` gerada). A fusão é
 `score = Σ 1 / (60 + posição)`; um trecho ausente de uma lista simplesmente não soma nada dela (RRF
 clássico).
+- Os termos são ligados por E (padrão do `websearch_to_tsquery`, que também aceita aspas e `-termo`).
+  Testamos OU: quase todo trecho casava, com `ts_rank` empatado, e essa lista sem informação
+  derrubava o melhor resultado semântico ("em quanto tempo vocês devolvem o meu dinheiro?" tirava
+  "Estornos > Prazo para Pix" do 1º lugar). Com E, a lista de palavras reforça termos exatos e,
+  numa pergunta natural, quase não casa nada e a semântica decide.
 - Alternativa: busca só vetorial. Descartada: perde termos exatos ("Pix", "CDC").
 
 ### 6. Ingestão idempotente
