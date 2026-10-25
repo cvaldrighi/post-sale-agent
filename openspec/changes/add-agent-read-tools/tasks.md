@@ -2,7 +2,7 @@
 
 ## 1. Cliente do orders
 
-- [ ] 1.1 Instalar `zod` e `openapi-typescript`, criar o script `generate:orders-types` e gerar os tipos a partir de `contracts/orders.yaml`; verificar que o arquivo gerado compila
+- [ ] 1.1 Instalar `zod`, criar o script `generate:orders-types` e gerar os tipos a partir de `contracts/orders.yaml`; verificar que o arquivo gerado compila
 - [ ] 1.2 Adicionar `ORDERS_BASE_URL`, `ORDERS_API_KEY`, `ORDERS_TIMEOUT_MS` e `AGENT_MAX_STEPS` à configuração validada; verificar com testes unitários
 - [ ] 1.3 Implementar `withRetry` (só falhas temporárias, 3 tentativas, espera de 200 e 400 ms) e verificar com testes unitários (503 depois 200, 3 tempos limite, 404 sem retry)
 - [ ] 1.4 Implementar o `OrdersClient` (x-api-key, x-correlation-id, tempo limite, validação Zod com `satisfies` dos tipos gerados) e verificar com testes unitários com `fetch` simulado (sucesso, 404, resposta fora do contrato)

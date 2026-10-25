@@ -54,7 +54,9 @@ Cada ferramenta monta o próprio resultado: só os campos úteis, sem CPF, com v
 
 ### 5. Cliente do `orders` com tipos gerados do contrato
 `openapi-typescript` gera `src/orders-client/orders-api.types.ts` a partir de `contracts/orders.yaml`
-(script `npm run generate:orders-types`; o arquivo gerado é versionado). Os schemas Zod de validação
+(script `npm run generate:orders-types`, que roda a ferramenta pelo `npx`; o arquivo gerado é
+versionado). A ferramenta não entra nas dependências: ela exige TypeScript 5 e o projeto usa o 6, e
+só precisa rodar quando o contrato muda. Os schemas Zod de validação
 usam `satisfies z.ZodType<...>` com os tipos gerados: se o contrato mudar e o Zod não, o TypeScript
 não compila.
 - Alternativa: gerar um cliente completo (ex.: `openapi-fetch`). Descartada: são 3 chamadas, e um

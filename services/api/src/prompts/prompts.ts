@@ -16,4 +16,4 @@ export function loadPrompt(version: string): Prompt {
   return { version, text };
 }
 
-export const ASSISTANT_PROMPT_VERSION = 'assistant-v1';
+export const ASSISTANT_PROMPT_VERSION = 'assistant-v2';

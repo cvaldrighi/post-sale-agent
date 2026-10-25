@@ -32,7 +32,7 @@ serviço `orders`, com autorização, validação e resiliência controladas pel
 ## Impact
 
 - `services/api`: novos módulos de agente, ferramentas e cliente do `orders`; tabela `tool_calls`.
-- Novas dependências: `zod` e, em desenvolvimento, `openapi-typescript`.
+- Nova dependência: `zod`. Tipos gerados do contrato com `openapi-typescript` via `npx`.
 - `docker-compose.yml`: a `api` passa a depender do `orders` e recebe `ORDERS_BASE_URL` e `ORDERS_API_KEY`.
 
 ## Fora do escopo

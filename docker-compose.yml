@@ -65,6 +65,11 @@ services:
       # Bedrock: credenciais do perfil da AWS CLI, montado como somente leitura (só em dev)
       AWS_REGION: us-east-1
       AWS_PROFILE: ${AWS_PROFILE:-post-sale-agent}
+      # O agente consulta pedidos e pagamentos no serviço orders, pela rede interna do Compose
+      ORDERS_BASE_URL: http://orders:3002
+      ORDERS_API_KEY: ${ORDERS_API_KEY:?defina no .env}
+      ORDERS_TIMEOUT_MS: 3000
+      AGENT_MAX_STEPS: 5
       LOG_LEVEL: info
     volumes:
       - ~/.aws:/home/node/.aws:ro
@@ -72,6 +77,8 @@ services:
       - "3000:3000"
     depends_on:
       postgres:
+        condition: service_healthy
+      orders:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]

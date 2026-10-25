@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { DataSource } from 'typeorm';
+import { ASSISTANT_PROMPT_VERSION } from '../src/prompts/prompts';
 import { createTestApp, resetDatabase, type TestContext, tokenFor } from './test-app';
 
 describe('Conversations (e2e)', () => {
@@ -28,7 +29,7 @@ describe('Conversations (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase(ctx.app);
-    ctx.llm.requests = [];
+    ctx.llm.reset();
   });
 
   afterAll(async () => {
@@ -75,7 +76,7 @@ describe('Conversations (e2e)', () => {
     expect(call).toMatchObject({
       provider: 'ollama',
       model: 'fake-model',
-      prompt_version: 'assistant-v1',
+      prompt_version: ASSISTANT_PROMPT_VERSION,
       input_tokens: 10,
       output_tokens: 5,
       stop_reason: 'end_turn',
