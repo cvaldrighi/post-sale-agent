@@ -70,11 +70,37 @@ post-sale-agent/
 ## Como rodar
 
 Pré-requisitos: Docker (ou OrbStack) e [Ollama](https://ollama.com) instalado na máquina host,
-com o modelo baixado (`ollama pull qwen2.5:7b`). O Ollama fica fora do Compose para usar a GPU;
+com os modelos baixados (`ollama pull qwen2.5:7b` e `ollama pull bge-m3`). O Ollama fica fora do Compose para usar a GPU;
 detalhes em [`services/api`](services/api/README.md#provedores-de-llm).
 
+### 1. Configurar os segredos
+
+O Compose lê tudo de um único `.env` na raiz, que fica fora do git. Ele precisa de senhas e chaves
+aleatórias; nenhuma vem preenchida, e sem elas o Compose se recusa a subir.
+
 ```bash
-cp .env.example .env       # preencha as senhas, ORDERS_API_KEY e JWT_SECRET (o .env fica fora do git)
+cp .env.example .env
+```
+
+Preencha cada valor vazio. Um jeito rápido de gerar valores aleatórios é o `openssl`:
+
+| Variável | O que é | Como gerar |
+|---|---|---|
+| `POSTGRES_PASSWORD` | Superusuário do Postgres (só cria schemas e usuários) | `openssl rand -hex 16` |
+| `APP_DB_PASSWORD`, `ORDERS_DB_PASSWORD`, `RETRIEVAL_DB_PASSWORD` | Usuário de banco de cada serviço | `openssl rand -hex 16` (um para cada) |
+| `ORDERS_API_KEY` | Chave que a `api` usa para chamar o `orders` | `openssl rand -hex 16` |
+| `RETRIEVAL_API_KEY` | Chave que a `api` usa para chamar o `retrieval` | `openssl rand -hex 16` |
+| `JWT_SECRET` | Segredo que assina os tokens dos clientes | `openssl rand -hex 32` |
+
+As senhas do banco são aplicadas só na primeira subida do Postgres. Para trocá-las depois, é preciso
+recriar o volume (`docker compose down -v`, que apaga os dados).
+
+Para rodar um serviço **fora** do Docker (ex.: `npm run start:dev`), cada pasta em `services/` tem o
+seu `.env.example`; os valores devem ser os mesmos do `.env` da raiz.
+
+### 2. Subir
+
+```bash
 docker compose up -d
 docker compose ps          # todos os serviços devem aparecer como "healthy"
 ```
@@ -84,4 +110,4 @@ docker compose ps          # todos os serviços devem aparecer como "healthy"
 | `postgres` | 5432 | pronto | [`infra/postgres`](infra/postgres/init/01-schemas.sh) |
 | `orders` | 3002 | pronto | [`services/orders`](services/orders/README.md) |
 | `api` | 3000 | pronto | [`services/api`](services/api/README.md) · Swagger em http://localhost:3000/docs |
-| `retrieval` | 8000 | em construção | |
+| `retrieval` | 8000 | pronto | [`services/retrieval`](services/retrieval/README.md) · Swagger em http://localhost:8000/docs |
