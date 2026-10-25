@@ -3,7 +3,8 @@
  *
  * Regra: repetir só o que pode dar certo na próxima tentativa (tempo limite, rede, 5xx).
  * Um 404 ou 400 vai dar o mesmo resultado sempre; repetir só atrasa a resposta.
- * Usado apenas em consultas (GET): repetir uma escrita poderia duplicar o efeito.
+ * Usado apenas em operações sem efeito colateral (consultas): repetir uma escrita poderia
+ * duplicar o efeito. O método HTTP não decide isso sozinho: o POST /search do retrieval só lê.
  */
 
 /** Erro que vale a pena tentar de novo. */
