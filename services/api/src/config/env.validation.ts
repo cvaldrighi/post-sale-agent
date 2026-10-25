@@ -104,6 +104,20 @@ export class EnvironmentVariables {
   @IsInt()
   @Min(100)
   ORDERS_TIMEOUT_MS: number = 3000;
+
+  @IsUrl({ require_tld: false })
+  RETRIEVAL_BASE_URL: string = 'http://localhost:8000';
+
+  /** Mesma chave configurada no serviço retrieval. */
+  @IsString()
+  @MinLength(16)
+  RETRIEVAL_API_KEY: string;
+
+  /** Tempo limite de cada tentativa de busca. Maior que o do orders: a primeira busca pode
+   * esperar o Ollama carregar o modelo de embeddings. */
+  @IsInt()
+  @Min(100)
+  RETRIEVAL_TIMEOUT_MS: number = 5000;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

@@ -16,3 +16,7 @@ process.env.ORDERS_BASE_URL = 'http://127.0.0.1:3902';
 process.env.ORDERS_API_KEY = 'stub-orders-key-0123456789';
 process.env.ORDERS_TIMEOUT_MS = '500';
 process.env.AGENT_MAX_STEPS = '5';
+// O retrieval é substituído por um servidor falso (test/retrieval-stub.ts, na tarefa 3.2)
+process.env.RETRIEVAL_BASE_URL = 'http://127.0.0.1:3903';
+process.env.RETRIEVAL_API_KEY = 'stub-retrieval-key-0123456789';
+process.env.RETRIEVAL_TIMEOUT_MS = '500';
