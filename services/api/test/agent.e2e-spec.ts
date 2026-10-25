@@ -61,7 +61,12 @@ describe('Agent with order tools (e2e)', () => {
   it('offers the tools to the LLM', async () => {
     await ask('Olá');
 
-    expect(ctx.llm.requests[0].tools?.map((t) => t.name)).toEqual(['list_my_orders', 'get_order', 'get_payment']);
+    expect(ctx.llm.requests[0].tools?.map((t) => t.name)).toEqual([
+      'list_my_orders',
+      'get_order',
+      'get_payment',
+      'search_policies',
+    ]);
   });
 
   it('denies an order of another customer as if it did not exist', async () => {
