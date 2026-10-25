@@ -85,6 +85,25 @@ export class EnvironmentVariables {
 
   @IsIn(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
   LOG_LEVEL: string = 'info';
+
+  /** Máximo de chamadas à LLM por mensagem do cliente (cada ferramenta pedida gera mais uma). */
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  AGENT_MAX_STEPS: number = 5;
+
+  @IsUrl({ require_tld: false })
+  ORDERS_BASE_URL: string = 'http://localhost:3002';
+
+  /** Mesma chave configurada no serviço orders. */
+  @IsString()
+  @MinLength(16)
+  ORDERS_API_KEY: string;
+
+  /** Tempo limite de cada tentativa de chamada ao orders. */
+  @IsInt()
+  @Min(100)
+  ORDERS_TIMEOUT_MS: number = 3000;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

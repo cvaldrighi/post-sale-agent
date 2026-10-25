@@ -22,7 +22,8 @@
     "test:debug": "node --inspect-brk --experimental-vm-modules -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
     "migration:run": "nest build && typeorm migration:run -d dist/database/data-source.js",
-    "migration:revert": "nest build && typeorm migration:revert -d dist/database/data-source.js"
+    "migration:revert": "nest build && typeorm migration:revert -d dist/database/data-source.js",
+    "generate:orders-types": "npx --yes openapi-typescript@7 ../../contracts/orders.yaml -o src/orders-client/orders-api.types.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1156.0",
@@ -40,7 +41,8 @@
     "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "typeorm": "^1.1.2"
+    "typeorm": "^1.1.2",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",

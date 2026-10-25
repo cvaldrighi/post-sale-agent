@@ -7,6 +7,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CurrentCustomer } from '../auth/current-customer.decorator';
+import { CorrelationId } from '../common/correlation-id.decorator';
 import { ConversationsService } from './conversations.service';
 import {
   ConversationDetailDto,
@@ -54,9 +55,12 @@ export class ConversationsController {
   async sendMessage(
     @Param('id') id: string,
     @CurrentCustomer() customerId: string,
+    @CorrelationId() correlationId: string,
     @Body() body: SendMessageDto,
   ): Promise<MessageResponseDto> {
-    return toMessage(await this.conversations.sendMessage(id, customerId, body.content));
+    return toMessage(
+      await this.conversations.sendMessage(id, customerId, body.content, correlationId),
+    );
   }
 }
 

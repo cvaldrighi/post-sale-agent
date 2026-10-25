@@ -3,6 +3,7 @@ import { validateEnv } from './env.validation';
 const validEnv = {
   DATABASE_PASSWORD: 'secret',
   JWT_SECRET: 'x'.repeat(32),
+  ORDERS_API_KEY: 'k'.repeat(16),
 };
 
 describe('validateEnv', () => {
@@ -24,7 +25,18 @@ describe('validateEnv', () => {
   });
 
   it('fails without JWT_SECRET', () => {
-    expect(() => validateEnv({ DATABASE_PASSWORD: 'secret' })).toThrow(/JWT_SECRET/);
+    expect(() => validateEnv({ ...validEnv, JWT_SECRET: undefined })).toThrow(/JWT_SECRET/);
+  });
+
+  it('fails without ORDERS_API_KEY', () => {
+    expect(() => validateEnv({ ...validEnv, ORDERS_API_KEY: undefined })).toThrow(/ORDERS_API_KEY/);
+  });
+
+  it('applies the agent and orders defaults', () => {
+    const env = validateEnv(validEnv);
+
+    expect(env.AGENT_MAX_STEPS).toBe(5);
+    expect(env.ORDERS_TIMEOUT_MS).toBe(3000);
   });
 
   it('fails with a JWT_SECRET shorter than 32 characters', () => {
