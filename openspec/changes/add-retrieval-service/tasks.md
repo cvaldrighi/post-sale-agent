@@ -26,11 +26,11 @@
 
 - [x] 5.1 Criar o `export_openapi`, gerar `contracts/retrieval.json` e o teste de divergência; verificar que o teste falha ao mudar um modelo sem regenerar
 - [x] 5.2 Criar o `Dockerfile` e adicionar o `retrieval` ao Compose (migrations e ingestão na inicialização, Ollama via host); verificar que fica healthy
-- [ ] 5.3 Escrever `services/retrieval/README.md` (com o paralelo Python × Node) e atualizar o README principal; verificar os comandos documentados
+- [x] 5.3 Escrever `services/retrieval/README.md` (com o paralelo Python × Node) e atualizar o README principal; verificar os comandos documentados
 
 ## 6. Verificação manual
 
-- [ ] 6.1 Com o Compose rodando, buscar "posso cancelar um pedido atrasado?", "em quanto tempo o dinheiro volta no Pix?" e "devolver produto com defeito"; conferir que os primeiros resultados vêm das políticas certas
+- [x] 6.1 Com o Compose rodando, buscar "posso cancelar um pedido atrasado?", "em quanto tempo o dinheiro volta no Pix?" e "devolver produto com defeito"; conferir que os primeiros resultados vêm das políticas certas
 
 ## Workflow follow-up
 
