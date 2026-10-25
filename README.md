@@ -70,7 +70,7 @@ post-sale-agent/
 ## Como rodar
 
 Pré-requisitos: Docker (ou OrbStack) e [Ollama](https://ollama.com) instalado na máquina host,
-com o modelo baixado (`ollama pull qwen2.5:7b`). O Ollama fica fora do Compose para usar a GPU;
+com os modelos baixados (`ollama pull qwen2.5:7b` e `ollama pull bge-m3`). O Ollama fica fora do Compose para usar a GPU;
 detalhes em [`services/api`](services/api/README.md#provedores-de-llm).
 
 ### 1. Configurar os segredos
@@ -110,4 +110,4 @@ docker compose ps          # todos os serviços devem aparecer como "healthy"
 | `postgres` | 5432 | pronto | [`infra/postgres`](infra/postgres/init/01-schemas.sh) |
 | `orders` | 3002 | pronto | [`services/orders`](services/orders/README.md) |
 | `api` | 3000 | pronto | [`services/api`](services/api/README.md) · Swagger em http://localhost:3000/docs |
-| `retrieval` | 8000 | em construção | |
+| `retrieval` | 8000 | pronto | [`services/retrieval`](services/retrieval/README.md) · Swagger em http://localhost:8000/docs |
