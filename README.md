@@ -69,7 +69,9 @@ post-sale-agent/
 
 ## Como rodar
 
-Pré-requisitos: Docker (ou OrbStack).
+Pré-requisitos: Docker (ou OrbStack) e [Ollama](https://ollama.com) instalado na máquina host,
+com o modelo baixado (`ollama pull qwen2.5:7b`). O Ollama fica fora do Compose para usar a GPU;
+detalhes em [`services/api`](services/api/README.md#provedores-de-llm).
 
 ```bash
 cp .env.example .env       # preencha as senhas, ORDERS_API_KEY e JWT_SECRET (o .env fica fora do git)

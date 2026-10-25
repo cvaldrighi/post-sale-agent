@@ -62,14 +62,20 @@ SELECT tool_name, input, outcome, error_code, latency_ms FROM app.tool_calls ORD
 
 | `LLM_PROVIDER` | `LLM_MODEL` | Observação |
 |---|---|---|
-| `ollama` (padrão) | `qwen2.5:7b` | Roda no Mac. `ollama pull qwen2.5:7b` |
+| `ollama` (padrão) | `qwen2.5:7b` | Roda na máquina host, fora do Compose. `ollama pull qwen2.5:7b` |
 | `bedrock` | `us.anthropic.claude-haiku-5-5` | Converse API; credenciais do perfil `AWS_PROFILE` |
 
 Trocar de provedor é só mudar as duas variáveis; nenhum código muda.
 
+**Por que o Ollama fica fora do Compose:** no macOS, containers não acessam a GPU do Apple Silicon,
+então o Ollama dentro do Docker usaria só a CPU e ficaria bem mais lento. Rodando direto no host, ele
+usa a GPU. A `api` no container o encontra por `host.docker.internal` (no Linux, o `extra_hosts` do
+Compose cria esse nome). Num Linux com GPU NVIDIA, também daria para rodá-lo como um serviço do
+Compose, com a imagem `ollama/ollama`.
+
 ## Rodando
 
-Com Docker (a partir da raiz do repositório, com o Ollama aberto no Mac):
+Com Docker (a partir da raiz do repositório, com o Ollama rodando na máquina host):
 
 ```bash
 docker compose up -d api

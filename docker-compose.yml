@@ -60,7 +60,8 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
       LLM_MODEL: ${LLM_MODEL:-qwen2.5:7b}
       LLM_TIMEOUT_MS: 60000
-      # O Ollama roda no Mac, fora do Compose; host.docker.internal aponta para o Mac
+      # O Ollama roda na máquina host, fora do Compose (no Mac, containers não usam a GPU).
+      # Dentro do container, "localhost" é o próprio container; host.docker.internal é o host.
       OLLAMA_BASE_URL: http://host.docker.internal:11434
       # Bedrock: credenciais do perfil da AWS CLI, montado como somente leitura (só em dev)
       AWS_REGION: us-east-1
@@ -71,6 +72,10 @@ services:
       ORDERS_TIMEOUT_MS: 3000
       AGENT_MAX_STEPS: 5
       LOG_LEVEL: info
+    # No Linux (Docker Engine), host.docker.internal não existe por padrão; esta linha o cria.
+    # No Mac e no Windows ele já existe, e a linha não muda nada.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ~/.aws:/home/node/.aws:ro
     ports:
