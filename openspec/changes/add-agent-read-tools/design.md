@@ -83,10 +83,16 @@ O ciclo vive em memória durante a requisição. Na próxima pergunta, se precis
 novo. Dado sempre atual e histórico simples.
 - Alternativa: guardar os blocos de ferramenta em `messages` (`jsonb`). Descartada para a PoC.
 
-### 10. Prompt `assistant-v2`
+### 10. Prompts `assistant-v2` e `assistant-v3`
 Orienta: usar as ferramentas sempre que a pergunta envolver pedidos ou pagamentos; usar
 `list_my_orders` quando o cliente não informar o pedido; nunca inventar dados; responder com datas no
 formato brasileiro; explicar com educação quando uma ferramenta falhar.
+
+Na verificação manual, com a v2, o modelo respondeu "quais são meus pedidos?" sem chamar
+`list_my_orders`: viu a resposta anterior no histórico (só mensagens finais, ver decisão 9) e
+inventou produtos e valores. A `assistant-v3` reforça: usar só dados vindos de ferramentas nesta
+resposta, consultar de novo mesmo que o pedido já tenha sido citado, e quando usar cada ferramenta.
+A v2 continua no repositório para comparação na avaliação (change 7).
 
 ### 11. Deduplicação de chamadas idênticas no mesmo passo
 Encontrado na verificação manual: o `qwen2.5:7b` pediu `get_order('ord_1001')` cinco vezes numa única
