@@ -68,11 +68,7 @@ export class AgentService {
 
       // O pedido da LLM entra no histórico do ciclo, seguido de um resultado por ferramenta
       messages.push({ role: 'assistant', content: response.content });
-      const results: ToolResultBlock[] = [];
-      for (const toolUse of toolUses) {
-        results.push(await this.executeTool(toolUse, context));
-      }
-      messages.push({ role: 'user', content: results });
+      messages.push({ role: 'user', content: await this.executeTools(toolUses, context) });
     }
 
     this.logger.warn(
@@ -80,6 +76,36 @@ export class AgentService {
       'Agent step limit reached',
     );
     return STEP_LIMIT_REPLY;
+  }
+
+  /**
+   * Executa os pedidos de um passo. Pedidos idênticos (mesma ferramenta, mesmos parâmetros)
+   * rodam uma vez só; cada pedido recebe o seu resultado, porque a LLM espera um por pedido.
+   */
+  private async executeTools(toolUses: ToolUseBlock[], context: ToolContext): Promise<ToolResultBlock[]> {
+    const executed = new Map<string, ToolResultBlock>();
+    const results: ToolResultBlock[] = [];
+
+    for (const toolUse of toolUses) {
+      const key = `${toolUse.name}:${stableStringify(toolUse.input ?? {})}`;
+      const previous = executed.get(key);
+      if (previous) {
+        results.push({ ...previous, toolUseId: toolUse.id });
+        continue;
+      }
+      const result = await this.executeTool(toolUse, context);
+      executed.set(key, result);
+      results.push(result);
+    }
+
+    const duplicates = toolUses.length - executed.size;
+    if (duplicates > 0) {
+      this.logger.info(
+        { conversationId: context.conversationId, duplicates },
+        'Duplicate tool requests skipped',
+      );
+    }
+    return results;
   }
 
   /** Executa uma ferramenta sem nunca lançar erro: toda falha vira um resultado para a LLM. */
@@ -146,4 +172,16 @@ export class AgentService {
       };
     }
   }
+}
+
+/** JSON com as chaves ordenadas: {a:1,b:2} e {b:2,a:1} viram o mesmo texto. */
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`);
+    return `{${entries.join(',')}}`;
+  }
+  return JSON.stringify(value);
 }

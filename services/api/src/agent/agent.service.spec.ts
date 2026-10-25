@@ -108,6 +108,29 @@ describe('AgentService', () => {
     expect(result).not.toContain('stack interno');
   });
 
+  it('runs identical requests of the same step only once, answering each of them', async () => {
+    const duplicated: LlmResponse = {
+      content: [
+        { type: 'tool_use', id: 'tu_a', name: 'get_order', input: { orderId: 'ord_1001' } },
+        { type: 'tool_use', id: 'tu_b', name: 'get_order', input: { orderId: 'ord_1001' } },
+        { type: 'tool_use', id: 'tu_c', name: 'get_order', input: { orderId: 'ord_1001' } },
+        { type: 'tool_use', id: 'tu_d', name: 'get_order', input: { orderId: 'ord_1002' } },
+      ],
+      stopReason: 'tool_use',
+      usage: { inputTokens: 1, outputTokens: 1 },
+      model: 'fake',
+    };
+    const { agent, requests, executed, toolCalls } = setup([duplicated, text('ok')]);
+
+    await agent.run(input, context);
+
+    expect(executed).toEqual([{ orderId: 'ord_1001' }, { orderId: 'ord_1002' }]);
+    expect(toolCalls).toHaveLength(2);
+    const results = requests[1].messages.at(-1)!.content as { toolUseId: string; content: unknown }[];
+    expect(results.map((r) => r.toolUseId)).toEqual(['tu_a', 'tu_b', 'tu_c', 'tu_d']);
+    expect(results[1].content).toEqual(results[0].content);
+  });
+
   it('stops at the step limit with a fixed reply', async () => {
     const script = Array.from({ length: 6 }, (_, i) => toolUse('get_order', { orderId: 'ord_1001' }, `tu_${i}`));
     const { agent, requests } = setup(script, { maxSteps: 3 });

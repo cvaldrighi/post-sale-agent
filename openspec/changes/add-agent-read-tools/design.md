@@ -88,7 +88,14 @@ Orienta: usar as ferramentas sempre que a pergunta envolver pedidos ou pagamento
 `list_my_orders` quando o cliente não informar o pedido; nunca inventar dados; responder com datas no
 formato brasileiro; explicar com educação quando uma ferramenta falhar.
 
-### 11. Limite de passos
+### 11. Deduplicação de chamadas idênticas no mesmo passo
+Encontrado na verificação manual: o `qwen2.5:7b` pediu `get_order('ord_1001')` cinco vezes numa única
+resposta. A chave `nome + parâmetros (com as chaves ordenadas)` identifica pedidos iguais; a
+ferramenta roda uma vez e cada `tool_use` recebe o seu `tool_result` (a Converse API exige um
+resultado por pedido). Vale só dentro do mesmo passo: em passos diferentes, a LLM pode ter motivo
+para consultar de novo.
+
+### 12. Limite de passos
 `AGENT_MAX_STEPS=5`. Mensagem fixa ao atingir o limite, registrada no log como aviso.
 
 ## Risks / Trade-offs

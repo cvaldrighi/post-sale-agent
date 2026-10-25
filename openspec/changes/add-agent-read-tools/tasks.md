@@ -17,6 +17,8 @@
 - [ ] 3.1 Criar a entidade e a migration de `tool_calls`; verificar com `npm run migration:run`
 - [ ] 3.2 Implementar o `AgentService` (ciclo, limite de passos, ferramenta inexistente, parâmetros inválidos, erros como resultado, registro em `tool_calls` e no log); verificar com testes unitários usando uma LLM falsa com respostas roteirizadas
 
+- [ ] 3.3 Deduplicar pedidos idênticos de ferramenta no mesmo passo (executa uma vez, um resultado por pedido); verificar com teste unitário
+
 ## 4. Conversas com o agente
 
 - [ ] 4.1 Criar o prompt `assistant-v2` e ligar o `ConversationsService` ao `AgentService`, passando cliente e correlation ID; verificar com testes E2E usando LLM roteirizada e um servidor falso do `orders` (resposta com ferramenta, pedido de outro cliente, `orders` fora do ar, correlation ID propagado)

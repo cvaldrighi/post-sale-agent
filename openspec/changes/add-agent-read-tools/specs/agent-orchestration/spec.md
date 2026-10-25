@@ -25,6 +25,15 @@ até a LLM responder com texto. Só a resposta final é guardada como mensagem d
 - **WHEN** a LLM responde direto com texto
 - **THEN** nenhuma ferramenta é executada e o texto é guardado como resposta
 
+### Requirement: Pedidos repetidos no mesmo passo
+Quando a LLM pedir, numa mesma resposta, a mesma ferramenta com os mesmos parâmetros mais de uma vez,
+a `api` SHALL executá-la uma única vez e devolver o mesmo resultado para cada pedido.
+
+#### Scenario: Ferramenta pedida em duplicidade
+- **WHEN** uma resposta da LLM pede `get_order` com `ord_1001` três vezes
+- **THEN** `get_order` é executada uma vez e a LLM recebe três resultados iguais, um para cada pedido
+- **AND** existe um único registro dessa execução
+
 ### Requirement: Limite de passos
 O ciclo MUST parar depois de um número máximo configurável de chamadas à LLM (padrão 5). Ao
 atingir o limite sem resposta final, a `api` SHALL guardar e devolver uma mensagem fixa pedindo
