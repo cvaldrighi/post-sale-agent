@@ -23,7 +23,8 @@
     "test:e2e": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
     "migration:run": "nest build && typeorm migration:run -d dist/database/data-source.js",
     "migration:revert": "nest build && typeorm migration:revert -d dist/database/data-source.js",
-    "generate:orders-types": "npx --yes openapi-typescript@7 ../../contracts/orders.yaml -o src/orders-client/orders-api.types.ts"
+    "generate:orders-types": "npx --yes openapi-typescript@7 ../../contracts/orders.yaml -o src/orders-client/orders-api.types.ts",
+    "generate:retrieval-types": "npx --yes openapi-typescript@7 ../../contracts/retrieval.json -o src/retrieval-client/retrieval-api.types.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1156.0",
