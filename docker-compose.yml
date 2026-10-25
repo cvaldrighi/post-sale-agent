@@ -47,6 +47,37 @@ services:
       retries: 5
       start_period: 10s
 
+  retrieval:
+    build: ./services/retrieval
+    environment:
+      PORT: 8000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB:-post_sale}
+      DATABASE_USER: retrieval_service
+      DATABASE_PASSWORD: ${RETRIEVAL_DB_PASSWORD:?defina no .env}
+      RETRIEVAL_API_KEY: ${RETRIEVAL_API_KEY:?defina no .env}
+      EMBEDDINGS_PROVIDER: ollama
+      EMBEDDINGS_MODEL: bge-m3
+      # Mesmo motivo da api: o Ollama roda no host
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      LOG_LEVEL: INFO
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # A imagem python:slim não tem wget nem curl; o próprio Python faz a requisição
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      # Na primeira subida, a ingestão gera os embeddings de todas as políticas antes do servidor abrir
+      start_period: 60s
+
   api:
     build: ./services/api
     environment:
