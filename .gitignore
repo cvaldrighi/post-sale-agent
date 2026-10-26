@@ -22,3 +22,6 @@ venv/
 .idea/
 .vscode/
 *.log
+
+# Resultados da avaliação do agente (gerados por npm run eval)
+services/api/eval/results/
