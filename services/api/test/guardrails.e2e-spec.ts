@@ -1,6 +1,7 @@
 import { PinoLogger } from 'nestjs-pino';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
+import { UNGROUNDED_ACTION_REPLY } from '../src/guardrails/action-grounding';
 import { UNGROUNDED_POLICY_REPLY } from '../src/guardrails/grounding';
 import { UNGROUNDED_ORDER_REPLY } from '../src/guardrails/order-grounding';
 import { PROMPT_INJECTION_REPLY } from '../src/guardrails/prompt-injection';
@@ -173,6 +174,32 @@ describe('Guardrails (e2e)', () => {
       const { res } = await send('Qual o status do pedido ord_2001?');
 
       expect(res.body.content).toBe('Não encontrei o pedido ord_2001. Pode conferir o número?');
+    });
+  });
+
+  describe('action grounding', () => {
+    const claim = 'Preparei a solicitação de estorno de R$ 189,90 do pedido ord_1001.';
+
+    it('replaces a refund claim when request_refund did not run', async () => {
+      // Caso real do teste manual: a resposta afirmava a proposta, mas nenhuma ferramenta rodou
+      ctx.llm.script = [reply(claim)];
+
+      const { res } = await send('Quero o estorno do pedido ord_1001');
+
+      expect(res.body.content).toBe(UNGROUNDED_ACTION_REPLY);
+      expect(res.body.pendingAction).toBeNull();
+    });
+
+    it('keeps the claim when request_refund succeeded', async () => {
+      ctx.llm.script = [
+        askTool('request_refund', { orderId: 'ord_1001', reason: 'Pedido atrasado' }),
+        reply(claim),
+      ];
+
+      const { res } = await send('Quero o estorno do pedido ord_1001');
+
+      expect(res.body.content).toBe(claim);
+      expect(res.body.pendingAction).toMatchObject({ orderId: 'ord_1001' });
     });
   });
 

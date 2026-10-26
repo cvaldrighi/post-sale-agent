@@ -180,3 +180,4 @@ ficam em [`openspec/changes/archive`](openspec/changes/archive) e as specs resul
 | `add-refund-approval` | proposta de estorno pelo agente e aprovação pelo cliente |
 | `add-guardrails` | mascaramento de dados pessoais, bloqueio de injeção, checagem de fundamentação |
 | `add-agent-evaluation` | avaliação com o modelo real e três iterações medidas do prompt |
+| `add-action-grounding` | guardrail para respostas que afirmam um estorno que não foi preparado |
