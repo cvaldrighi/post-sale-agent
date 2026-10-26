@@ -7,7 +7,7 @@ import {
   type OrderSummary,
   type Payment,
 } from './orders.schemas';
-import { TransientError, withRetry } from './retry';
+import { TransientError, withRetry } from '../common/retry';
 
 /**
  * Falha ao consultar o orders, já classificada para quem chama:

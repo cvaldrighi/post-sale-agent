@@ -4,6 +4,7 @@ const validEnv = {
   DATABASE_PASSWORD: 'secret',
   JWT_SECRET: 'x'.repeat(32),
   ORDERS_API_KEY: 'k'.repeat(16),
+  RETRIEVAL_API_KEY: 'r'.repeat(16),
 };
 
 describe('validateEnv', () => {
@@ -37,6 +38,21 @@ describe('validateEnv', () => {
 
     expect(env.AGENT_MAX_STEPS).toBe(5);
     expect(env.ORDERS_TIMEOUT_MS).toBe(3000);
+  });
+
+  it('fails without RETRIEVAL_API_KEY', () => {
+    expect(() => validateEnv({ ...validEnv, RETRIEVAL_API_KEY: undefined })).toThrow(/RETRIEVAL_API_KEY/);
+  });
+
+  it('fails with a RETRIEVAL_API_KEY shorter than 16 characters', () => {
+    expect(() => validateEnv({ ...validEnv, RETRIEVAL_API_KEY: 'short' })).toThrow(/RETRIEVAL_API_KEY/);
+  });
+
+  it('applies the retrieval defaults', () => {
+    const env = validateEnv(validEnv);
+
+    expect(env.RETRIEVAL_BASE_URL).toBe('http://localhost:8000');
+    expect(env.RETRIEVAL_TIMEOUT_MS).toBe(5000);
   });
 
   it('fails with a JWT_SECRET shorter than 32 characters', () => {

@@ -101,6 +101,10 @@ services:
       ORDERS_BASE_URL: http://orders:3002
       ORDERS_API_KEY: ${ORDERS_API_KEY:?defina no .env}
       ORDERS_TIMEOUT_MS: 3000
+      # A ferramenta search_policies busca nas políticas pelo retrieval, também pela rede interna
+      RETRIEVAL_BASE_URL: http://retrieval:8000
+      RETRIEVAL_API_KEY: ${RETRIEVAL_API_KEY:?defina no .env}
+      RETRIEVAL_TIMEOUT_MS: 5000
       AGENT_MAX_STEPS: 5
       LOG_LEVEL: info
     # No Linux (Docker Engine), host.docker.internal não existe por padrão; esta linha o cria.
@@ -115,6 +119,8 @@ services:
       postgres:
         condition: service_healthy
       orders:
+        condition: service_healthy
+      retrieval:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
