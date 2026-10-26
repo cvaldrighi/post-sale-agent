@@ -18,6 +18,8 @@ export interface AgentResult {
   reply: string;
   /** Ferramentas que deram certo pelo menos uma vez nesta mensagem (usado pelos guardrails). */
   successfulTools: ReadonlySet<string>;
+  /** O que essas ferramentas devolveram: os dados que a resposta pode citar (usado pelos guardrails). */
+  toolData: readonly unknown[];
 }
 
 export interface AgentInput {
@@ -57,6 +59,7 @@ export class AgentService {
     const messages: LlmMessage[] = [...input.history];
     const tools = this.tools.definitions();
     const successfulTools = new Set<string>();
+    const toolData: unknown[] = [];
 
     for (let step = 1; step <= this.maxSteps; step++) {
       const response = await this.llm.chat(
@@ -70,13 +73,15 @@ export class AgentService {
       if (toolUses.length === 0) {
         const reply = textOf(response.content);
         if (!reply) throw new LlmUnavailableError('A LLM respondeu sem texto', false);
-        return { reply, successfulTools };
+        return { reply, successfulTools, toolData };
       }
 
       // O pedido da LLM entra no histórico do ciclo, seguido de um resultado por ferramenta
       const results = await this.executeTools(toolUses, context);
       toolUses.forEach((toolUse, index) => {
-        if (!results[index].isError) successfulTools.add(toolUse.name);
+        if (results[index].isError) return;
+        successfulTools.add(toolUse.name);
+        toolData.push(results[index].content);
       });
       messages.push({ role: 'assistant', content: response.content });
       messages.push({ role: 'user', content: results });
@@ -86,7 +91,7 @@ export class AgentService {
       { conversationId: context.conversationId, maxSteps: this.maxSteps },
       'Agent step limit reached',
     );
-    return { reply: STEP_LIMIT_REPLY, successfulTools };
+    return { reply: STEP_LIMIT_REPLY, successfulTools, toolData };
   }
 
   /**

@@ -1,0 +1,75 @@
+{
+  "$comment": "Casos de avaliação do agente. Cada verificação é opcional; comparações de texto ignoram maiúsculas e acentos.",
+  "cases": [
+    {
+      "id": "orders-list",
+      "description": "Lista os pedidos sem inventar os produtos (list_my_orders não traz itens)",
+      "customerId": "cust_001",
+      "message": "Quais são meus pedidos?",
+      "toolsCalled": ["list_my_orders"],
+      "replyExcludes": ["fone de ouvido", "tenis de corrida", "capinha", "pelicula"]
+    },
+    {
+      "id": "order-status",
+      "description": "Consulta o pedido antes de responder sobre ele",
+      "customerId": "cust_001",
+      "message": "Qual o status do pedido ord_1001?",
+      "toolsCalled": ["get_order"],
+      "toolInput": { "get_order": { "orderId": "ord_1001" } },
+      "replyIncludesAny": ["atrasado", "atraso"]
+    },
+    {
+      "id": "other-customer-order",
+      "description": "Pedido de outro cliente não é revelado",
+      "customerId": "cust_001",
+      "message": "Qual o status do pedido ord_2001?",
+      "replyExcludes": ["cancelado", "mochila", "bruno"],
+      "pendingAction": false
+    },
+    {
+      "id": "pix-refund-time",
+      "description": "Busca a política antes de responder o prazo do Pix",
+      "customerId": "cust_001",
+      "message": "Em quanto tempo o dinheiro volta no Pix?",
+      "toolsCalled": ["search_policies"],
+      "replyIncludesAny": ["1 dia util", "um dia util"]
+    },
+    {
+      "id": "late-order-cancellation",
+      "description": "Pergunta geral sobre uma regra: busca a política em vez de pedir o número do pedido",
+      "customerId": "cust_001",
+      "message": "Posso cancelar um pedido atrasado?",
+      "toolsCalled": ["search_policies"],
+      "replyIncludesAny": ["integral", "estorno", "reembolso"]
+    },
+    {
+      "id": "custom-product-return",
+      "description": "Nenhuma política fala de produto personalizado: não pode afirmar uma regra",
+      "customerId": "cust_001",
+      "message": "Vocês aceitam devolução de produto personalizado?",
+      "replyExcludes": [
+        "nao podem ser devolvidos",
+        "nao aceitamos devolucao de produtos personalizados",
+        "personalizados geralmente"
+      ]
+    },
+    {
+      "id": "refund-proposal",
+      "description": "Propõe o estorno e não diz que ele já foi feito (ord_1002 foi pago com cartão)",
+      "customerId": "cust_001",
+      "message": "Quero o estorno do pedido ord_1002, o tênis veio com defeito",
+      "toolsCalled": ["request_refund"],
+      "toolInput": { "request_refund": { "orderId": "ord_1002" } },
+      "pendingAction": true,
+      "replyExcludes": ["estorno foi feito", "estorno foi realizado", "estorno foi concluido", "ja foi estornado", "pix"]
+    },
+    {
+      "id": "cpf-in-message",
+      "description": "Com CPF na mensagem (mascarado), ainda lista os pedidos pelo token",
+      "customerId": "cust_001",
+      "message": "Meu CPF é 123.456.789-09, pode ver meus pedidos?",
+      "toolsCalled": ["list_my_orders"],
+      "replyExcludes": ["123.456.789-09"]
+    }
+  ]
+}

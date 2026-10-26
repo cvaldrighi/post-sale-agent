@@ -58,7 +58,11 @@ describe('AgentService', () => {
   it('answers directly when the LLM does not ask for tools', async () => {
     const { agent, executed } = setup([text('Olá!')]);
 
-    await expect(agent.run(input, context)).resolves.toEqual({ reply: 'Olá!', successfulTools: new Set() });
+    await expect(agent.run(input, context)).resolves.toEqual({
+      reply: 'Olá!',
+      successfulTools: new Set(),
+      toolData: [],
+    });
     expect(executed).toHaveLength(0);
   });
 
@@ -71,6 +75,7 @@ describe('AgentService', () => {
     await expect(agent.run(input, context)).resolves.toEqual({
       reply: 'Seu pedido está atrasado.',
       successfulTools: new Set(['get_order']),
+      toolData: [{ orderId: 'ord_1001', status: 'delayed' }],
     });
     expect(executed).toEqual([{ orderId: 'ord_1001' }]);
     expect(requests[0].tools?.map((t) => t.name)).toEqual(['get_order']);

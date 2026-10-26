@@ -8,7 +8,7 @@ describe('loadPrompt', () => {
     expect(prompt.text).toContain('assistente de pós-venda');
   });
 
-  it.each(['assistant-v1', 'assistant-v2', 'assistant-v3', 'assistant-v4', 'assistant-v5', 'assistant-v6'])(
+  it.each(['assistant-v1', 'assistant-v2', 'assistant-v3', 'assistant-v4', 'assistant-v5', 'assistant-v6', 'assistant-v7', 'assistant-v8'])(
     'keeps the previous version %s available for comparison',
     (version) => {
       expect(loadPrompt(version).text.length).toBeGreaterThan(0);

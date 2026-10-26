@@ -2,6 +2,7 @@ import { PinoLogger } from 'nestjs-pino';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { UNGROUNDED_POLICY_REPLY } from '../src/guardrails/grounding';
+import { UNGROUNDED_ORDER_REPLY } from '../src/guardrails/order-grounding';
 import { PROMPT_INJECTION_REPLY } from '../src/guardrails/prompt-injection';
 import { askTool, reply } from './fake-llm.provider';
 import { startOrdersStub, type OrdersStub } from './orders-stub';
@@ -139,6 +140,39 @@ describe('Guardrails (e2e)', () => {
 
       expect(res.body.content).toBe(UNGROUNDED_POLICY_REPLY);
       retrieval.down = false;
+    });
+  });
+
+  describe('order grounding', () => {
+    it('replaces an answer that lists orders no tool returned', async () => {
+      // Achado da avaliação: o modelo "listou" pedidos inexistentes sem chamar ferramenta
+      ctx.llm.script = [reply('Listei seus pedidos recentes: ord_1005 (R$ 150,00) e ord_1006.')];
+
+      const { res } = await send('Meu CPF é 123.456.789-09, pode ver meus pedidos?');
+
+      expect(res.body.content).toBe(UNGROUNDED_ORDER_REPLY);
+    });
+
+    it('keeps an answer about an order returned by a tool', async () => {
+      ctx.llm.script = [
+        askTool('get_order', { orderId: 'ord_1001' }),
+        reply('O pedido ord_1001 está atrasado.'),
+      ];
+
+      const { res } = await send('Cadê meu pedido?');
+
+      expect(res.body.content).toBe('O pedido ord_1001 está atrasado.');
+    });
+
+    it('keeps an answer about an order the customer typed', async () => {
+      ctx.llm.script = [
+        askTool('get_order', { orderId: 'ord_2001' }), // de outro cliente: a ferramenta nega
+        reply('Não encontrei o pedido ord_2001. Pode conferir o número?'),
+      ];
+
+      const { res } = await send('Qual o status do pedido ord_2001?');
+
+      expect(res.body.content).toBe('Não encontrei o pedido ord_2001. Pode conferir o número?');
     });
   });
 

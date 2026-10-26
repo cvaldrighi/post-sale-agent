@@ -16,10 +16,13 @@ describe('Customer approval of actions (e2e)', () => {
   const refundRequests = () => stub.requests.filter((r) => r.method === 'POST' && r.url === '/refunds');
 
   /** Uma proposta de estorno de ord_1001 numa conversa de cust_001, como a ferramenta faria. */
-  async function proposeRefund() {
+  async function newConversation(): Promise<string> {
     const conversation = await request(server()).post('/conversations').set('Authorization', `Bearer ${ana}`);
+    return conversation.body.id as string;
+  }
+  async function proposeRefund(conversationId?: string) {
     return ctx.app.get(ActionsService).proposeRefund({
-      conversationId: conversation.body.id as string,
+      conversationId: conversationId ?? (await newConversation()),
       customerId: 'cust_001',
       orderId: 'ord_1001',
       amountCents: 18990,
@@ -163,13 +166,23 @@ describe('Customer approval of actions (e2e)', () => {
     expect((await approve(action.id)).body.code).toBe('action_not_pending');
   });
 
-  it('reuses the pending proposal of the same order', async () => {
-    const first = await proposeRefund();
-    const second = await proposeRefund();
+  it('reuses the pending proposal of the same order in the same conversation', async () => {
+    const conversationId = await newConversation();
+    const first = await proposeRefund(conversationId);
+    const second = await proposeRefund(conversationId);
 
     expect(second.id).toBe(first.id);
     const [{ count }] = await db().query(`SELECT count(*)::int AS count FROM app.pending_actions`);
     expect(count).toBe(1);
+  });
+
+  it('creates a new proposal in another conversation, so each reply shows what to approve', async () => {
+    // Achado da avaliação: reaproveitar a proposta de outra conversa deixava a resposta sem pendingAction
+    const first = await proposeRefund();
+    const second = await proposeRefund();
+
+    expect(second.id).not.toBe(first.id);
+    expect(second.conversationId).not.toBe(first.conversationId);
   });
 
   describe('through the conversation', () => {

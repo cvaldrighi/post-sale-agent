@@ -8,6 +8,7 @@ import { ProblemException } from '../common/problem';
 import type { EnvironmentVariables } from '../config/env.validation';
 import { AgentService } from '../agent/agent.service';
 import { isUngroundedPolicyAnswer, UNGROUNDED_POLICY_REPLY } from '../guardrails/grounding';
+import { findUngroundedOrderIds, UNGROUNDED_ORDER_REPLY } from '../guardrails/order-grounding';
 import { maskPii } from '../guardrails/pii';
 import { detectPromptInjection, PROMPT_INJECTION_REPLY } from '../guardrails/prompt-injection';
 import { LlmUnavailableError } from '../llm/llm.service';
@@ -109,6 +110,20 @@ export class ConversationsService {
       if (isUngroundedPolicyAnswer(reply, result.successfulTools)) {
         this.logger.warn({ guardrail: 'ungrounded_policy', conversationId }, 'Guardrail triggered');
         reply = UNGROUNDED_POLICY_REPLY;
+      }
+
+      // Guardrail 4: pedido citado precisa ter vindo de uma ferramenta ou da própria conversa
+      const trusted = [
+        ...recent.map((message) => message.content), // histórico, inclusive a mensagem atual
+        ...result.toolData.map((data) => JSON.stringify(data)),
+      ];
+      const inventedOrders = findUngroundedOrderIds(reply, trusted);
+      if (inventedOrders.length > 0) {
+        this.logger.warn(
+          { guardrail: 'ungrounded_order', conversationId, orderIds: inventedOrders },
+          'Guardrail triggered',
+        );
+        reply = UNGROUNDED_ORDER_REPLY;
       }
     } catch (error) {
       if (error instanceof LlmUnavailableError) throw llmUnavailable();

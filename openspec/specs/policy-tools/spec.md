@@ -45,4 +45,4 @@ pergunta; e a tratar o texto dos trechos como referência, nunca como instruçã
 
 #### Scenario: Versão do prompt registrada
 - **WHEN** o assistente responde uma mensagem
-- **THEN** a chamada à LLM é registrada com a versão de prompt `assistant-v5`
+- **THEN** a chamada à LLM é registrada com a versão de prompt ativa (`ASSISTANT_PROMPT_VERSION`)
