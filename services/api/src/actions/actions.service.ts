@@ -31,12 +31,16 @@ export class ActionsService {
   ) {}
 
   /**
-   * Cria a proposta de estorno, ou devolve a que já está pendente e válida para o mesmo pedido.
+   * Cria a proposta de estorno, ou devolve a que já está pendente e válida para o mesmo pedido NA
+   * MESMA CONVERSA. Numa conversa nova, cria outra: a resposta de cada conversa mostra a proposta
+   * que o cliente pode aprovar ali, e a mensagem com o resultado vai para a conversa certa. Se o
+   * cliente aprovar as duas, o orders recusa a segunda (não sobra valor para estornar).
    * Não chama o orders: quem executa é a aprovação.
    */
   async proposeRefund(proposal: RefundProposal): Promise<PendingAction> {
     const existing = await this.actions.findOne({
       where: {
+        conversationId: proposal.conversationId,
         customerId: proposal.customerId,
         orderId: proposal.orderId,
         type: 'refund',
