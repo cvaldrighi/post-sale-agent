@@ -15,8 +15,8 @@ export function createPolicyTools(retrieval: RetrievalClient): AgentTool[] {
       name: 'search_policies',
       description:
         'Busca nas políticas oficiais da loja: trocas, devoluções, cancelamento, estornos, prazos de ' +
-        'entrega e garantia. Use sempre que a resposta depender de uma regra da loja. Escreva a busca ' +
-        'com o assunto da pergunta, por exemplo "prazo do estorno no Pix".',
+        'entrega e garantia. Obrigatória antes de responder qualquer pergunta sobre uma regra da loja: ' +
+        'você não conhece essas regras. Escreva a busca com as palavras do assunto da pergunta.',
       input: z.object({
         query: z.string().trim().min(1).max(500).describe('O que buscar nas políticas'),
       }),
