@@ -75,10 +75,11 @@ export class ConversationsService {
     //    pode levar dezenas de segundos). Só a resposta final vira mensagem.
     let reply: string;
     try {
-      reply = await this.agent.run(
+      const result = await this.agent.run(
         { system: this.prompt.text, promptVersion: this.prompt.version, history },
         { conversationId, customerId, correlationId },
       );
+      reply = result.reply;
     } catch (error) {
       if (error instanceof LlmUnavailableError) throw llmUnavailable();
       throw error;

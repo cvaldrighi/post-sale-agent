@@ -58,7 +58,7 @@ describe('AgentService', () => {
   it('answers directly when the LLM does not ask for tools', async () => {
     const { agent, executed } = setup([text('Olá!')]);
 
-    await expect(agent.run(input, context)).resolves.toBe('Olá!');
+    await expect(agent.run(input, context)).resolves.toEqual({ reply: 'Olá!', successfulTools: new Set() });
     expect(executed).toHaveLength(0);
   });
 
@@ -68,7 +68,10 @@ describe('AgentService', () => {
       text('Seu pedido está atrasado.'),
     ]);
 
-    await expect(agent.run(input, context)).resolves.toBe('Seu pedido está atrasado.');
+    await expect(agent.run(input, context)).resolves.toEqual({
+      reply: 'Seu pedido está atrasado.',
+      successfulTools: new Set(['get_order']),
+    });
     expect(executed).toEqual([{ orderId: 'ord_1001' }]);
     expect(requests[0].tools?.map((t) => t.name)).toEqual(['get_order']);
     expect(requests[1].messages.at(-1)).toEqual({
@@ -135,7 +138,7 @@ describe('AgentService', () => {
     const script = Array.from({ length: 6 }, (_, i) => toolUse('get_order', { orderId: 'ord_1001' }, `tu_${i}`));
     const { agent, requests } = setup(script, { maxSteps: 3 });
 
-    await expect(agent.run(input, context)).resolves.toBe(STEP_LIMIT_REPLY);
+    await expect(agent.run(input, context)).resolves.toMatchObject({ reply: STEP_LIMIT_REPLY });
     expect(requests).toHaveLength(3);
   });
 });

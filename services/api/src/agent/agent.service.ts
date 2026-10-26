@@ -14,6 +14,12 @@ export const STEP_LIMIT_REPLY =
   'Desculpe, não consegui concluir sua solicitação agora. Pode reformular a pergunta ou tentar ' +
   'novamente em alguns minutos?';
 
+export interface AgentResult {
+  reply: string;
+  /** Ferramentas que deram certo pelo menos uma vez nesta mensagem (usado pelos guardrails). */
+  successfulTools: ReadonlySet<string>;
+}
+
 export interface AgentInput {
   system: string;
   promptVersion: string;
@@ -47,9 +53,10 @@ export class AgentService {
     this.maxTokens = config.get('LLM_MAX_TOKENS', { infer: true });
   }
 
-  async run(input: AgentInput, context: ToolContext): Promise<string> {
+  async run(input: AgentInput, context: ToolContext): Promise<AgentResult> {
     const messages: LlmMessage[] = [...input.history];
     const tools = this.tools.definitions();
+    const successfulTools = new Set<string>();
 
     for (let step = 1; step <= this.maxSteps; step++) {
       const response = await this.llm.chat(
@@ -63,19 +70,23 @@ export class AgentService {
       if (toolUses.length === 0) {
         const reply = textOf(response.content);
         if (!reply) throw new LlmUnavailableError('A LLM respondeu sem texto', false);
-        return reply;
+        return { reply, successfulTools };
       }
 
       // O pedido da LLM entra no histórico do ciclo, seguido de um resultado por ferramenta
+      const results = await this.executeTools(toolUses, context);
+      toolUses.forEach((toolUse, index) => {
+        if (!results[index].isError) successfulTools.add(toolUse.name);
+      });
       messages.push({ role: 'assistant', content: response.content });
-      messages.push({ role: 'user', content: await this.executeTools(toolUses, context) });
+      messages.push({ role: 'user', content: results });
     }
 
     this.logger.warn(
       { conversationId: context.conversationId, maxSteps: this.maxSteps },
       'Agent step limit reached',
     );
-    return STEP_LIMIT_REPLY;
+    return { reply: STEP_LIMIT_REPLY, successfulTools };
   }
 
   /**
