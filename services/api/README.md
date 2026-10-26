@@ -19,7 +19,7 @@ Node.js 24 · NestJS · TypeORM · PostgreSQL (schema `app`) · Ollama ou Amazon
 **Comportamentos importantes**
 - A identidade do cliente vem só do token (JWT HS256, 1 hora). Conversa de outro cliente responde
   404, igual a uma inexistente, para não revelar que existe.
-- A cada mensagem, a LLM recebe o prompt de sistema versionado (`src/prompts/assistant-v3.md`), as
+- A cada mensagem, a LLM recebe o prompt de sistema versionado (`src/prompts/assistant-v4.md`), as
   20 mensagens mais recentes da conversa e as ferramentas do agente.
 - Toda chamada à LLM é registrada em `app.llm_calls` (provedor, modelo, versão do prompt, tokens,
   latência, motivo de parada, erro) e numa linha de log com o correlation ID.
@@ -36,6 +36,7 @@ ela pedir, devolve o resultado e repete até a LLM responder (no máximo `AGENT_
 | `list_my_orders` | nenhum | Pedidos do cliente, do mais recente para o mais antigo |
 | `get_order` | `orderId` | Status, itens, total, previsão e data de entrega |
 | `get_payment` | `orderId` | Método, status, valor pago e valor estornado |
+| `search_policies` | `query` | Os 4 trechos mais relevantes das políticas da loja: política, seção e texto |
 
 **Regras que ficam no código, não na LLM**
 - O cliente consultado vem sempre do token. Pedido de outro cliente tem a mesma resposta de um
@@ -43,7 +44,7 @@ ela pedir, devolve o resultado e repete até a LLM responder (no máximo `AGENT_
 - Os parâmetros que a LLM manda são validados (Zod) antes de executar; ferramenta inexistente ou
   parâmetro inválido voltam como erro para a LLM corrigir.
 - Os resultados não trazem dados pessoais (nome, CPF) e já vêm com valores em reais.
-- Se o `orders` falhar, a ferramenta devolve um erro amigável e a conversa continua.
+- Se o `orders` ou o `retrieval` falharem, a ferramenta devolve um erro amigável e a conversa continua.
 
 **Integração com o `orders`** (`src/orders-client`)
 - Tipos gerados de `contracts/orders.yaml` (`npm run generate:orders-types`) e respostas validadas
@@ -51,6 +52,16 @@ ela pedir, devolve o resultado e repete até a LLM responder (no máximo `AGENT_
 - Tempo limite de 3 s por tentativa; consultas são repetidas até 3 vezes (espera de 200 e 400 ms),
   só em tempo limite, erro de rede ou 5xx. Erros 4xx não são repetidos.
 - Envia `x-api-key` e propaga o `x-correlation-id` da requisição do cliente.
+
+**Busca nas políticas (RAG)** (`src/retrieval-client`, `src/agent/tools/policy-tools.ts`)
+- A busca é uma ferramenta: a LLM decide quando precisa de uma regra da loja e escreve a busca
+  ("prazo do estorno no Pix"). Perguntas só sobre pedidos não gastam uma busca.
+- O `retrieval` faz a busca híbrida (semântica + palavras). A LLM recebe só política, seção e texto,
+  e o prompt manda citar a política e tratar os trechos como referência, nunca como instrução.
+- Mesmo molde do cliente do `orders`: tipos gerados de `contracts/retrieval.json`
+  (`npm run generate:retrieval-types`), validação com Zod, `x-api-key`, correlation ID e retry só em
+  falhas temporárias. Tempo limite de 5 s por tentativa: a primeira busca pode esperar o Ollama
+  carregar o modelo de embeddings. A busca é um `POST`, mas só lê, então pode ser repetida.
 
 Cada passo fica registrado: chamadas à LLM em `app.llm_calls` e ferramentas em `app.tool_calls`.
 
