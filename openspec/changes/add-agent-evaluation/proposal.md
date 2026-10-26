@@ -16,8 +16,9 @@ medir, não há como comparar prompts ou modelos, nem perceber uma regressão.
   várias vezes e confere as ferramentas chamadas (em `app.tool_calls`), a resposta e a ação pendente.
 - Relatório com a taxa de acerto por caso e no total, com o modelo e a versão do prompt, impresso e
   salvo em JSON para comparar execuções.
-- Uma iteração medida: o prompt `assistant-v7` ataca os dois casos com 0% (estorno e CPF) e a
-  avaliação compara v6 e v7.
+- Iterações medidas: o prompt `assistant-v7` ataca os dois casos com 0% (estorno e CPF); a avaliação
+  revelou um bug no reaproveitamento de propostas entre conversas e pedidos inventados, corrigidos
+  com o `assistant-v8` e um guardrail de pedidos sem origem.
 
 ## Capabilities
 
@@ -27,6 +28,7 @@ medir, não há como comparar prompts ou modelos, nem perceber uma regressão.
 ### Modified Capabilities
 - `refund-approval`: o prompt passa a mandar sempre chamar `request_refund`, deixando a decisão para a ferramenta.
 - `policy-tools`: o cenário de versão do prompt passa a se referir à versão ativa, não a um número fixo.
+- `guardrails`: pedidos citados na resposta precisam ter vindo de uma ferramenta ou da conversa.
 
 ## Impact
 
