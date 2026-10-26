@@ -16,6 +16,8 @@ medir, não há como comparar prompts ou modelos, nem perceber uma regressão.
   várias vezes e confere as ferramentas chamadas (em `app.tool_calls`), a resposta e a ação pendente.
 - Relatório com a taxa de acerto por caso e no total, com o modelo e a versão do prompt, impresso e
   salvo em JSON para comparar execuções.
+- Uma iteração medida: o prompt `assistant-v7` ataca os dois casos com 0% (estorno e CPF) e a
+  avaliação compara v6 e v7.
 
 ## Capabilities
 
@@ -23,12 +25,13 @@ medir, não há como comparar prompts ou modelos, nem perceber uma regressão.
 - `agent-evaluation`: casos, verificações e relatório da avaliação do agente com o modelo real.
 
 ### Modified Capabilities
-<!-- Nenhuma. -->
+- `refund-approval`: o prompt passa a mandar sempre chamar `request_refund`, deixando a decisão para a ferramenta.
+- `policy-tools`: o cenário de versão do prompt passa a se referir à versão ativa, não a um número fixo.
 
 ## Impact
 
 - `services/api/eval/`: casos (JSON), script de avaliação e relatórios (fora do git).
-- Nenhuma mudança no código da `api`.
+- `services/api`: prompt `assistant-v7` e descrição da ferramenta `request_refund`.
 
 ## Fora do escopo
 

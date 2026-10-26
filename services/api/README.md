@@ -21,7 +21,7 @@ Node.js 24 · NestJS · TypeORM · PostgreSQL (schema `app`) · Ollama ou Amazon
 **Comportamentos importantes**
 - A identidade do cliente vem só do token (JWT HS256, 1 hora). Conversa de outro cliente responde
   404, igual a uma inexistente, para não revelar que existe.
-- A cada mensagem, a LLM recebe o prompt de sistema versionado (`src/prompts/assistant-v6.md`), as
+- A cada mensagem, a LLM recebe o prompt de sistema versionado (`src/prompts/assistant-v7.md`), as
   20 mensagens mais recentes da conversa e as ferramentas do agente.
 - Toda chamada à LLM é registrada em `app.llm_calls` (provedor, modelo, versão do prompt, tokens,
   latência, motivo de parada, erro) e numa linha de log com o correlation ID.
@@ -144,6 +144,44 @@ docker compose logs api | grep guardrail
 
 Em produção: classificador de injeção e de conteúdo também na saída (Amazon Bedrock Guardrails ou
 equivalente) e detecção de PII mais ampla (nome, e-mail, endereço).
+
+## Avaliação do agente
+
+Os testes automatizados usam uma LLM roteirizada: provam que o **código** está certo. A avaliação
+mede o **modelo**: roda casos reais contra a `api` no ar, com o modelo de verdade, várias vezes, e
+calcula a taxa de acerto. Serve para comparar prompts e modelos com números e perceber regressões.
+
+```bash
+docker compose up -d          # api, orders, retrieval e Postgres; Ollama no host
+npm run eval                  # 3 rodadas por caso (EVAL_RUNS=1 para conferir rápido)
+```
+
+- Casos em `eval/cases.json`, tirados das verificações manuais: pergunta e verificações
+  (ferramentas que precisam ter rodado com sucesso, parâmetros, textos obrigatórios ou proibidos na
+  resposta, ação pendente). Adicionar um caso não exige código.
+- Cada rodada é uma conversa nova; o script lê `app.tool_calls` para saber o que o agente fez.
+- A saída mostra a taxa por caso, os motivos das falhas e o total, com o modelo e a versão do
+  prompt. O resultado completo, com as respostas, fica em `eval/results/` (fora do git).
+
+Resultado com `qwen2.5:7b` e o prompt `assistant-v6` (trecho):
+
+```
+caso                       acertos
+orders-list                  3/3 100%
+pix-refund-time              3/3 100%
+late-order-cancellation      1/3  33%
+                            - não chamou search_policies (2x)
+refund-proposal              0/3   0%
+                            - não chamou request_refund (3x)
+total                      14/24  58%
+```
+
+Consultas de dados acertam sempre; regras em perguntas gerais e a proposta de estorno são os pontos
+fracos do modelo local. Análise completa no design da change `add-agent-evaluation`.
+
+Limites: as verificações são determinísticas (ferramenta, parâmetro, texto). Fidelidade da resposta
+aos trechos das políticas pediria uma segunda LLM como juiz, que fica para produção. A avaliação não
+roda no CI: precisa do modelo, é lenta e, no Bedrock, tem custo.
 
 ## Provedores de LLM
 

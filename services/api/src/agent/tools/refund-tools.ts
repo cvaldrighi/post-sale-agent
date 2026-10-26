@@ -16,8 +16,10 @@ export function createRefundTools(orders: OrdersClient, actions: ActionsService)
       name: 'request_refund',
       description:
         'Propõe o estorno do pagamento de um pedido do cliente. NÃO faz o estorno: cria uma proposta ' +
-        'que o próprio cliente precisa aprovar. Use quando o cliente pedir o estorno ou o dinheiro de ' +
-        'volta de um pedido. Sem amountCents, propõe o estorno de todo o valor que ainda pode ser estornado.',
+        'que o próprio cliente precisa aprovar. Chame sempre que o cliente pedir o estorno ou o ' +
+        'dinheiro de volta, mesmo que ele cite defeito, garantia ou prazo: quem decide se o estorno é ' +
+        'possível é esta ferramenta, não você. Sem amountCents, propõe o estorno de todo o valor que ' +
+        'ainda pode ser estornado.',
       input: z.object({
         orderId: z.string().min(1).describe('Identificador do pedido, por exemplo "ord_1001"'),
         reason: z.string().trim().min(1).max(500).describe('Motivo informado pelo cliente'),

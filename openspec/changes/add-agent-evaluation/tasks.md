@@ -2,17 +2,22 @@
 
 ## 1. Casos e script
 
-- [ ] 1.1 Escrever `eval/cases.json` com os 8 casos do design
-- [ ] 1.2 Implementar `eval/run-eval.mts` (token, conversa nova por rodada, mensagem, leitura de `app.tool_calls` e `app.llm_calls`, verificações sem acento) e o script `npm run eval`; verificar rodando com `EVAL_RUNS=1`
-- [ ] 1.3 Imprimir a tabela e salvar o JSON em `eval/results/` (no `.gitignore`); verificar o arquivo gerado
+- [x] 1.1 Escrever `eval/cases.json` com os 8 casos do design
+- [x] 1.2 Implementar `eval/run-eval.mts` (token, conversa nova por rodada, mensagem, leitura de `app.tool_calls` e `app.llm_calls`, verificações sem acento) e o script `npm run eval`; verificar rodando com `EVAL_RUNS=1`
+- [x] 1.3 Imprimir a tabela e salvar o JSON em `eval/results/` (no `.gitignore`); verificar o arquivo gerado
 
 ## 2. Documentação
 
-- [ ] 2.1 Atualizar `services/api/README.md` (como rodar e ler a avaliação)
+- [x] 2.1 Atualizar `services/api/README.md` (como rodar e ler a avaliação)
 
 ## 3. Verificação manual
 
-- [ ] 3.1 Rodar `npm run eval` com 3 rodadas e registrar no design a taxa de acerto por caso
+- [x] 3.1 Rodar `npm run eval` com 3 rodadas e registrar no design a taxa de acerto por caso
+
+## 4. Iteração medida
+
+- [ ] 4.1 Criar o prompt `assistant-v7` (sempre chamar `request_refund`, a ferramenta decide; CPF é ignorado; exemplos) e ajustar a descrição da ferramenta; verificar com os testes
+- [ ] 4.2 Rodar `npm run eval` com 3 rodadas e registrar no design a comparação v6 × v7
 
 ## Workflow follow-up
 
