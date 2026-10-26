@@ -35,7 +35,7 @@ uma mensagem amigável, e a conversa MUST continuar.
 
 #### Scenario: Retrieval fora do ar
 - **WHEN** o cliente pergunta sobre trocas e o `retrieval` responde 503 em todas as tentativas
-- **THEN** a resposta ao cliente é 200, a ferramenta é registrada com `outcome` "error" e
+- **THEN** a mensagem do cliente é respondida normalmente (201), a ferramenta é registrada com `outcome` "error" e
   `error_code` "policies_unavailable"
 
 ### Requirement: Respostas baseadas nas políticas
