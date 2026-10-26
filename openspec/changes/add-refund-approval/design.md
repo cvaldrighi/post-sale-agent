@@ -71,6 +71,19 @@ histórico o que aconteceu. O texto é montado pelo código, não pela LLM.
 Acrescenta ao v5: usar `request_refund` quando o cliente pedir um estorno, explicar que o estorno só
 acontece depois da aprovação e nunca dizer que já foi feito.
 
+## Verificação manual (qwen2.5:7b)
+
+- "Quero o estorno do pedido ord_1001": o pagamento já estava `refunded` (testes do `orders`); a
+  ferramenta recusou com `payment_not_refundable` e o assistente explicou o motivo.
+- "Quero o estorno do pedido ord_1003, desisti da compra": proposta criada (R$ 79,90) e o assistente
+  disse que o estorno aguarda aprovação. Mas inventou um passo a passo ("entre no seu perfil na loja")
+  e disse que o valor voltaria "no seu cartão", num pedido pago com Pix. Nenhum dos dois erros causa
+  um estorno errado, porque quem executa é o código; os dois viram casos de avaliação (change 7).
+- Aprovação: `executed`, pagamento `refunded` no `orders` e a mensagem escrita pelo código na
+  conversa. Segunda aprovação: 409 `action_not_pending`.
+- "Quero o estorno do pedido ord_2001" (de outro cliente): mesma resposta de pedido inexistente,
+  sem proposta.
+
 ## Risks / Trade-offs
 
 - [O modelo pode dizer "estorno feito" mesmo com a ação pendente] → instrução no prompt; o dado real
