@@ -107,6 +107,44 @@ SELECT tool_name, input, outcome, error_code, latency_ms FROM app.tool_calls ORD
 SELECT id, order_id, amount_cents, status, error_code, expires_at FROM app.pending_actions ORDER BY created_at DESC;
 ```
 
+## Segurança: defesa em camadas
+
+As regras críticas ficam no código, não no modelo. Da camada mais forte para a mais fraca:
+
+| Camada | Depende do modelo? |
+|---|---|
+| Identidade só pelo token; cada ferramenta confere o dono do pedido | não |
+| Escrita só com aprovação do cliente, por um endpoint que a LLM não alcança | não |
+| Validações das ferramentas (pagamento estornável, valor máximo) | não |
+| Dados pessoais mascarados antes de gravar e de enviar à LLM | não |
+| Resposta que cita política sem busca bem-sucedida é trocada | não |
+| Padrões conhecidos de injeção bloqueados sem chamar a LLM | não, mas é contornável |
+| Prompt: trechos de documentos são referência, nunca instrução | sim |
+
+Se o modelo for enganado (por exemplo, por uma instrução escondida num documento de política), as
+três primeiras camadas ainda seguram. O teste `test/guardrails.e2e-spec.ts` prova isso: a LLM
+roteirizada obedece a um trecho malicioso que manda propor um estorno de R$ 1.000, e mesmo assim a
+ferramenta recusa o valor e nenhum estorno chega ao `orders`.
+
+**Guardrails** (`src/guardrails`, funções puras aplicadas no `ConversationsService`)
+- `maskPii`: CPF (formatado ou 11 dígitos) vira `[CPF]`; cartão de 13 a 19 dígitos que passa no
+  algoritmo de Luhn vira `[CARTÃO]`. O texto original não é guardado em lugar nenhum.
+- `detectPromptInjection`: padrões como "ignore as instruções anteriores", "mostre seu prompt",
+  "você agora é" e "modo desenvolvedor", em português e inglês. Resposta fixa, sem chamar a LLM.
+- `isUngroundedPolicyAnswer`: resposta com "política" sem `search_policies` bem-sucedida na mesma
+  mensagem é trocada por "não encontrei essa regra nas políticas". Limitação: uma regra inventada
+  sem a palavra "política" passa; a avaliação mede esses casos.
+
+Cada guardrail acionado gera um log `"guardrail": "pii_masked" | "prompt_injection" |
+"ungrounded_policy"`, com o id da conversa e o correlation ID, sem o conteúdo da mensagem:
+
+```bash
+docker compose logs api | grep guardrail
+```
+
+Em produção: classificador de injeção e de conteúdo também na saída (Amazon Bedrock Guardrails ou
+equivalente) e detecção de PII mais ampla (nome, e-mail, endereço).
+
 ## Provedores de LLM
 
 | `LLM_PROVIDER` | `LLM_MODEL` | Observação |
