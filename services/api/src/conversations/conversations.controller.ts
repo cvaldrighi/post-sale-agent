@@ -6,6 +6,8 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { ActionsService } from '../actions/actions.service';
+import { toPendingActionSummary } from '../actions/dto/action.dto';
 import { CurrentCustomer } from '../auth/current-customer.decorator';
 import { CorrelationId } from '../common/correlation-id.decorator';
 import { ConversationsService } from './conversations.service';
@@ -14,6 +16,7 @@ import {
   ConversationResponseDto,
   MessageResponseDto,
   SendMessageDto,
+  SendMessageResponseDto,
 } from './dto/conversation.dto';
 import type { Conversation } from './entities/conversation.entity';
 import type { Message } from './entities/message.entity';
@@ -22,7 +25,10 @@ import type { Message } from './entities/message.entity';
 @ApiBearerAuth()
 @Controller('conversations')
 export class ConversationsController {
-  constructor(private readonly conversations: ConversationsService) {}
+  constructor(
+    private readonly conversations: ConversationsService,
+    private readonly actions: ActionsService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -51,16 +57,20 @@ export class ConversationsController {
   @Post(':id/messages')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Envia uma mensagem e recebe a resposta do assistente' })
-  @ApiCreatedResponse({ type: MessageResponseDto })
+  @ApiCreatedResponse({ type: SendMessageResponseDto })
   async sendMessage(
     @Param('id') id: string,
     @CurrentCustomer() customerId: string,
     @CorrelationId() correlationId: string,
     @Body() body: SendMessageDto,
-  ): Promise<MessageResponseDto> {
-    return toMessage(
-      await this.conversations.sendMessage(id, customerId, body.content, correlationId),
-    );
+  ): Promise<SendMessageResponseDto> {
+    const reply = await this.conversations.sendMessage(id, customerId, body.content, correlationId);
+    // A conversa já foi conferida como do cliente dentro do sendMessage
+    const pending = await this.actions.findPendingForConversation(id);
+    // toMessage já cria um objeto novo; Object.assign acrescenta o campo sem copiar com spread
+    return Object.assign(toMessage(reply), {
+      pendingAction: pending ? toPendingActionSummary(pending) : null,
+    });
   }
 }
 

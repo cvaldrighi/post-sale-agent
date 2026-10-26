@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { formatBrl } from '../../common/money';
 import { OrdersApiError, type OrdersClient } from '../../orders-client/orders.client';
 import type { Order } from '../../orders-client/orders.schemas';
 import { defineTool, type AgentTool, type ToolContext, type ToolResult } from './tool';
+
+export { formatBrl };
 
 const ORDER_STATUS: Record<Order['status'], string> = {
   awaiting_payment: 'aguardando pagamento',
@@ -24,13 +27,6 @@ const PAYMENT_METHOD: Record<string, string> = { pix: 'Pix', credit_card: 'cart�
 
 const NOT_FOUND = 'Pedido não encontrado para este cliente.';
 const UNAVAILABLE = 'O sistema de pedidos está indisponível no momento. Tente novamente em alguns minutos.';
-
-/** "R$ 189,90" (o Intl usa um espaço especial depois do R$; trocamos por um espaço comum). */
-export function formatBrl(cents: number): string {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-    .format(cents / 100)
-    .replace(/ /g, ' ');
-}
 
 const orderIdInput = z.object({
   orderId: z.string().min(1).describe('Identificador do pedido, por exemplo "ord_1001"'),

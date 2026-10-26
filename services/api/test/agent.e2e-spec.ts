@@ -66,6 +66,7 @@ describe('Agent with order tools (e2e)', () => {
       'get_order',
       'get_payment',
       'search_policies',
+      'request_refund',
     ]);
   });
 

@@ -61,6 +61,22 @@ export const paymentSchema = z.object({
   cardLast4: z.string().nullable(),
 }) satisfies z.ZodType<Schemas['Payment']>;
 
+export const refundSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  paymentId: z.string(),
+  amountCents: money,
+  currency,
+  reason: z.string(),
+  status: z.enum(['processing', 'completed']),
+  createdAt: z.string(),
+}) satisfies z.ZodType<Schemas['Refund']>;
+
+/** Só o `code` interessa para quem chama; o resto do problem+json fica no log. */
+export const problemSchema = z.object({ code: z.string() });
+
+export type CreateRefundRequest = Schemas['CreateRefundRequest'];
 export type OrderSummary = z.infer<typeof orderSummarySchema>;
 export type Order = z.infer<typeof orderSchema>;
 export type Payment = z.infer<typeof paymentSchema>;
+export type Refund = z.infer<typeof refundSchema>;
