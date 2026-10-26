@@ -14,7 +14,9 @@ Node.js 24 · NestJS · TypeORM · PostgreSQL (schema `app`) · Ollama ou Amazon
 | `POST` | `/auth/token` | não | Emite um token para o cliente (login simplificado da PoC) |
 | `POST` | `/conversations` | Bearer | Abre uma conversa |
 | `GET` | `/conversations/{id}` | Bearer | Consulta a conversa e as mensagens |
-| `POST` | `/conversations/{id}/messages` | Bearer | Envia uma mensagem e recebe a resposta do assistente |
+| `POST` | `/conversations/{id}/messages` | Bearer | Envia uma mensagem e recebe a resposta do assistente (e a ação pendente, se houver) |
+| `POST` | `/actions/{id}/approve` | Bearer | Aprova e executa uma ação proposta pelo assistente |
+| `POST` | `/actions/{id}/reject` | Bearer | Recusa uma ação proposta pelo assistente |
 
 **Comportamentos importantes**
 - A identidade do cliente vem só do token (JWT HS256, 1 hora). Conversa de outro cliente responde
@@ -37,6 +39,7 @@ ela pedir, devolve o resultado e repete até a LLM responder (no máximo `AGENT_
 | `get_order` | `orderId` | Status, itens, total, previsão e data de entrega |
 | `get_payment` | `orderId` | Método, status, valor pago e valor estornado |
 | `search_policies` | `query` | Os 4 trechos mais relevantes das políticas da loja: política, seção e texto |
+| `request_refund` | `orderId`, `reason`, `amountCents` (opcional) | Uma **proposta** de estorno, que o cliente precisa aprovar |
 
 **Regras que ficam no código, não na LLM**
 - O cliente consultado vem sempre do token. Pedido de outro cliente tem a mesma resposta de um
@@ -63,10 +66,45 @@ ela pedir, devolve o resultado e repete até a LLM responder (no máximo `AGENT_
   falhas temporárias. Tempo limite de 5 s por tentativa: a primeira busca pode esperar o Ollama
   carregar o modelo de embeddings. A busca é um `POST`, mas só lê, então pode ser repetida.
 
-Cada passo fica registrado: chamadas à LLM em `app.llm_calls` e ferramentas em `app.tool_calls`.
+## Estornos com aprovação do cliente
+
+A única ferramenta que altera dados não executa nada: ela **propõe**. Quem executa é o cliente, por
+um endpoint que a LLM não tem como chamar. Mesmo que uma injeção de prompt convença o modelo a "fazer
+o estorno", o máximo que ele consegue é criar uma proposta.
+
+```
+cliente: "quero o estorno do ord_1001"
+  → LLM chama request_refund → api confere dono, pagamento e valor → grava ação "pending" (15 min)
+  ← resposta do assistente + pendingAction { id, orderId, amountCents, expiresAt }
+cliente: POST /actions/{id}/approve
+  → UPDATE condicional pending → executing (só um clique passa)
+  → POST /refunds no orders com Idempotency-Key = id da ação
+  ← ação "executed" com o estorno, e uma mensagem do assistente na conversa
+```
+
+| Status | Significado |
+|---|---|
+| `pending` | Proposta aguardando o cliente (vale 15 minutos) |
+| `executing` | Aprovada; o estorno está sendo pedido ao `orders` |
+| `executed` | Estorno criado no `orders` (`refund` traz o estorno) |
+| `failed` | O `orders` recusou (`errorCode`, ex.: `payment_not_refundable`) |
+| `rejected` | Recusada pelo cliente |
+
+**Regras que ficam no código**
+- Aprovar exige o mesmo cliente do token; ação de outro cliente responde 404 `action_not_found`.
+- Aprovar de novo responde 409 `action_not_pending`; depois da validade, 409 `action_expired`.
+- Duas aprovações ao mesmo tempo: o `UPDATE … WHERE status = 'pending'` deixa só uma mudar a linha.
+- O estorno usa o mesmo retry das consultas. Repetir um `POST` só é seguro porque todas as
+  tentativas levam a mesma `Idempotency-Key`. Se o `orders` continuar fora do ar, a ação volta para
+  `pending` (503 `orders_unavailable`) e o cliente pode aprovar de novo, com a mesma chave.
+- A mensagem sobre o resultado é escrita pelo código, não pela LLM.
+
+Cada passo fica registrado: chamadas à LLM em `app.llm_calls`, ferramentas em `app.tool_calls` e
+ações em `app.pending_actions`.
 
 ```sql
 SELECT tool_name, input, outcome, error_code, latency_ms FROM app.tool_calls ORDER BY id DESC LIMIT 10;
+SELECT id, order_id, amount_cents, status, error_code, expires_at FROM app.pending_actions ORDER BY created_at DESC;
 ```
 
 ## Provedores de LLM
@@ -125,3 +163,16 @@ curl -s -X POST localhost:3000/conversations/$CONVERSATION/messages \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"content":"Olá, o que você pode fazer por mim?"}'
 ```
+
+Pedindo e aprovando um estorno (com os dados de exemplo, `ord_1001` é um Pix de R$ 189,90):
+
+```bash
+ACTION=$(curl -s -X POST localhost:3000/conversations/$CONVERSATION/messages \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"content":"Quero o estorno do pedido ord_1001, ele atrasou"}' | jq -r .pendingAction.id)
+
+curl -s -X POST localhost:3000/actions/$ACTION/approve -H "Authorization: Bearer $TOKEN" | jq
+```
+
+Aprovar muda os dados do `orders` de verdade. Para voltar ao estado inicial:
+`docker compose down -v && docker compose up -d` (apaga os volumes e recria os dados de exemplo).
