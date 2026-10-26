@@ -2,10 +2,14 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isUUID } from 'class-validator';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
 import { ProblemException } from '../common/problem';
 import type { EnvironmentVariables } from '../config/env.validation';
 import { AgentService } from '../agent/agent.service';
+import { isUngroundedPolicyAnswer, UNGROUNDED_POLICY_REPLY } from '../guardrails/grounding';
+import { maskPii } from '../guardrails/pii';
+import { detectPromptInjection, PROMPT_INJECTION_REPLY } from '../guardrails/prompt-injection';
 import { LlmUnavailableError } from '../llm/llm.service';
 import type { LlmMessage } from '../llm/llm.types';
 import { ASSISTANT_PROMPT_VERSION, loadPrompt, type Prompt } from '../prompts/prompts';
@@ -21,6 +25,7 @@ export class ConversationsService {
     @InjectRepository(Conversation) private readonly conversations: Repository<Conversation>,
     @InjectRepository(Message) private readonly messages: Repository<Message>,
     private readonly agent: AgentService,
+    @InjectPinoLogger(ConversationsService.name) private readonly logger: PinoLogger,
     config: ConfigService<EnvironmentVariables, true>,
   ) {
     this.historyLimit = config.get('LLM_HISTORY_LIMIT', { infer: true });
@@ -57,8 +62,27 @@ export class ConversationsService {
   ): Promise<Message> {
     await this.getOwned(conversationId, customerId);
 
+    // Guardrail 1: dados pessoais saem antes de tudo. Daqui em diante (banco, LLM, logs) só existe
+    // o texto mascarado; o original não é guardado.
+    const masked = maskPii(content);
+    if (masked.counts.cpf + masked.counts.card > 0) {
+      this.logger.info({ guardrail: 'pii_masked', conversationId, ...masked.counts }, 'Guardrail triggered');
+    }
+
     // 1. A mensagem do cliente é gravada antes: se a LLM falhar, ela não se perde
-    await this.messages.save(this.messages.create({ conversationId, role: 'user', content }));
+    await this.messages.save(
+      this.messages.create({ conversationId, role: 'user', content: masked.text }),
+    );
+
+    // Guardrail 2: tentativa óbvia de injeção não chega à LLM
+    const injection = detectPromptInjection(masked.text);
+    if (injection.detected) {
+      this.logger.warn(
+        { guardrail: 'prompt_injection', conversationId, pattern: injection.pattern },
+        'Guardrail triggered',
+      );
+      return this.saveAssistantMessage(conversationId, PROMPT_INJECTION_REPLY);
+    }
 
     // 2. Janela de contexto: as N mais recentes, em ordem cronológica
     const recent = await this.messages.find({
@@ -80,15 +104,23 @@ export class ConversationsService {
         { conversationId, customerId, correlationId },
       );
       reply = result.reply;
+
+      // Guardrail 3: citar uma política exige ter buscado nas políticas nesta mensagem
+      if (isUngroundedPolicyAnswer(reply, result.successfulTools)) {
+        this.logger.warn({ guardrail: 'ungrounded_policy', conversationId }, 'Guardrail triggered');
+        reply = UNGROUNDED_POLICY_REPLY;
+      }
     } catch (error) {
       if (error instanceof LlmUnavailableError) throw llmUnavailable();
       throw error;
     }
 
     // 4. Só agora a resposta do assistente é gravada
-    return this.messages.save(
-      this.messages.create({ conversationId, role: 'assistant', content: reply }),
-    );
+    return this.saveAssistantMessage(conversationId, reply);
+  }
+
+  private saveAssistantMessage(conversationId: string, content: string): Promise<Message> {
+    return this.messages.save(this.messages.create({ conversationId, role: 'assistant', content }));
   }
 }
 
