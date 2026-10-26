@@ -30,7 +30,10 @@ export async function createTestApp(): Promise<TestContext> {
 export async function resetDatabase(app: INestApplication): Promise<void> {
   await app
     .get(DataSource)
-    .query('TRUNCATE app.tool_calls, app.llm_calls, app.messages, app.conversations RESTART IDENTITY CASCADE');
+    .query(
+      'TRUNCATE app.pending_actions, app.tool_calls, app.llm_calls, app.messages, app.conversations ' +
+        'RESTART IDENTITY CASCADE',
+    );
 }
 
 export async function tokenFor(app: INestApplication, customerId: string): Promise<string> {
