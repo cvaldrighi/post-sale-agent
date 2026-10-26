@@ -38,6 +38,21 @@ ferramenta, e passaram pelo guardrail. A limitação prevista aconteceu na prime
 ganharam o gerúndio e "aprovar a solicitação". O caso continua falhando na avaliação quando o modelo
 não chama a ferramenta (a avaliação mede o modelo), mas a resposta enganosa deixa de chegar ao cliente.
 
+Segunda rodada, com os padrões ampliados: 18/27 (67%). No `refund-late-order` (0/3), o modelo não
+chamou a ferramenta nenhuma vez, e nas três o guardrail trocou a resposta por "Ainda não consegui
+preparar a solicitação de estorno…".
+
+| Guardrail | Modelo chamou a ferramenta | O cliente recebeu |
+|---|---|---|
+| só passado | 1/3 | 1 resposta certa, 2 enganosas |
+| passado + gerúndio + "aprovar a solicitação" | 0/3 | 3 respostas seguras |
+
+A taxa da avaliação mede o modelo; a proteção aparece nas respostas. Melhoria possível: uma segunda
+métrica na avaliação, "respostas enganosas que chegaram ao cliente".
+
+Outro padrão visto: "Vamos verificar as regras sobre cancelamento para você." sem chamar ferramenta.
+O modelo anuncia a ação e para. Não engana sobre algo feito, só não responde.
+
 ## Em produção
 
 - Uma interface mostraria o botão de aprovar só quando houver `pendingAction`, nunca a partir do texto.

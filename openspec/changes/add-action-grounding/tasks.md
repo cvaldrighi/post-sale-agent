@@ -9,7 +9,7 @@
 
 - [x] 2.1 Adicionar o caso de estorno de pedido "atrasado" em `eval/cases.json` e atualizar o README da api
 - [x] 2.2 Rodar `npm run eval` e registrar o resultado no design
-- [ ] 2.3 Ampliar os padrões com o gerúndio e "aprovar a solicitação" (achado da avaliação); verificar com testes unitários e rodando a avaliação de novo
+- [x] 2.3 Ampliar os padrões com o gerúndio e "aprovar a solicitação" (achado da avaliação); verificar com testes unitários e rodando a avaliação de novo
 
 ## Workflow follow-up
 
