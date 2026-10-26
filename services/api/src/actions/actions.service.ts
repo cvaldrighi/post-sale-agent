@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isUUID } from 'class-validator';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { formatBrl } from '../common/money';
 import { ProblemException } from '../common/problem';
 import { Message } from '../conversations/entities/message.entity';
@@ -95,6 +95,14 @@ export class ActionsService {
     const action = await this.actions.findOneByOrFail({ id });
     this.logger.info({ actionId: id, orderId: action.orderId }, 'Action rejected by the customer');
     return action;
+  }
+
+  /** A ação pendente e ainda válida mais recente da conversa (o que o cliente pode aprovar agora). */
+  findPendingForConversation(conversationId: string): Promise<PendingAction | null> {
+    return this.actions.findOne({
+      where: { conversationId, status: 'pending', expiresAt: MoreThan(new Date()) },
+      order: { createdAt: 'DESC' },
+    });
   }
 
   /** Busca a ação SÓ se for do cliente (mesma regra das conversas). */

@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { ActionsService } from '../src/actions/actions.service';
+import { askTool, reply } from './fake-llm.provider';
 import { startOrdersStub, type OrdersStub } from './orders-stub';
 import { createTestApp, resetDatabase, type TestContext, tokenFor } from './test-app';
 
@@ -37,6 +38,7 @@ describe('Customer approval of actions (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase(ctx.app);
+    ctx.llm.reset();
     stub.requests = [];
     stub.down = false;
     stub.refundError = null;
@@ -168,6 +170,44 @@ describe('Customer approval of actions (e2e)', () => {
     expect(second.id).toBe(first.id);
     const [{ count }] = await db().query(`SELECT count(*)::int AS count FROM app.pending_actions`);
     expect(count).toBe(1);
+  });
+
+  describe('through the conversation', () => {
+    const send = async (content: string) => {
+      const conversation = await request(server())
+        .post('/conversations')
+        .set('Authorization', `Bearer ${ana}`);
+      return request(server())
+        .post(`/conversations/${conversation.body.id}/messages`)
+        .set('Authorization', `Bearer ${ana}`)
+        .send({ content });
+    };
+
+    it('returns the proposal created by request_refund, without refunding', async () => {
+      ctx.llm.script = [
+        askTool('request_refund', { orderId: 'ord_1001', reason: 'Pedido atrasado' }),
+        reply('Preparei o estorno de R$ 189,90. Aprove para ele acontecer.'),
+      ];
+
+      const res = await send('Quero o estorno do pedido ord_1001, ele atrasou');
+
+      expect(res.status).toBe(201);
+      expect(res.body.pendingAction).toMatchObject({
+        type: 'refund',
+        orderId: 'ord_1001',
+        amountCents: 18990,
+      });
+      const [row] = await db().query(`SELECT id, status FROM app.pending_actions`);
+      expect(row).toEqual({ id: res.body.pendingAction.id, status: 'pending' });
+      expect(refundRequests()).toHaveLength(0);
+    });
+
+    it('returns null when there is nothing to approve', async () => {
+      const res = await send('Olá');
+
+      expect(res.status).toBe(201);
+      expect(res.body.pendingAction).toBeNull();
+    });
   });
 
   it('requires a token', async () => {

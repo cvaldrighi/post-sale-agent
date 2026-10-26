@@ -45,12 +45,18 @@ em vez de criar outra.
 - **THEN** existe uma única ação `pending` para `ord_1001`
 
 ### Requirement: Ação pendente na resposta
-A resposta de `POST /conversations/{id}/messages` SHALL trazer `pendingAction` (`id`, `type`,
-`orderId`, `amountCents`, `expiresAt`) quando a mensagem gerou uma ação pendente, e `null` quando não.
+A resposta de `POST /conversations/{id}/messages` SHALL trazer em `pendingAction` (`id`, `type`,
+`orderId`, `amountCents`, `expiresAt`) a ação `pending` e válida mais recente da conversa, e `null`
+quando não houver. Enquanto o cliente não decide, cada resposta lembra o que aguarda aprovação.
 
 #### Scenario: Mensagem que gera proposta
 - **WHEN** o cliente pede um estorno e o agente chama `request_refund`
 - **THEN** a resposta tem `pendingAction` com o `id` da ação criada
+- **AND** o `orders` não recebeu nenhum `POST /refunds`
+
+#### Scenario: Conversa sem proposta
+- **WHEN** o cliente envia uma mensagem e a conversa não tem ação pendente
+- **THEN** a resposta tem `pendingAction` igual a `null`
 
 ### Requirement: Aprovar uma ação
 `POST /actions/{id}/approve` SHALL executar a ação `pending` e válida do cliente autenticado: chama o
