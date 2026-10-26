@@ -21,7 +21,7 @@
 - [x] 4.3 Corrigir o reaproveitamento de proposta entre conversas (achado da avaliação); verificar com testes E2E
 - [x] 4.4 Criar o prompt `assistant-v8` (v7 sem o exemplo de CPF, que levou o modelo a inventar pedidos)
 - [x] 4.5 Criar o guardrail de pedidos sem origem (`ungrounded_order`); verificar com testes unitários e E2E
-- [ ] 4.6 Rodar `npm run eval` e registrar no design a comparação v6 × v7 × v8
+- [x] 4.6 Rodar `npm run eval` e registrar no design a comparação v6 × v7 × v8
 
 ## Workflow follow-up
 

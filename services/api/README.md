@@ -163,7 +163,9 @@ npm run eval                  # 3 rodadas por caso (EVAL_RUNS=1 para conferir r�
 - A saída mostra a taxa por caso, os motivos das falhas e o total, com o modelo e a versão do
   prompt. O resultado completo, com as respostas, fica em `eval/results/` (fora do git).
 
-Resultado com `qwen2.5:7b` e o prompt `assistant-v6` (trecho):
+Com `qwen2.5:7b`, a avaliação guiou três versões do prompt: 58% (`assistant-v6`), 71% (v7) e 75%
+(v8). No caminho, achou um bug de código (proposta reaproveitada entre conversas) e uma alucinação
+causada por um exemplo no prompt, que virou o guardrail de pedidos sem origem. Primeira rodada (trecho):
 
 ```
 caso                       acertos

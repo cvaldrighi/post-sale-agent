@@ -80,6 +80,36 @@ Leitura:
 - Próximos passos naturais: rodar a mesma avaliação com Claude Haiku no Bedrock (troca só de
   configuração) e iterar o prompt medindo cada versão.
 
+## Iteração medida: assistant-v6 × v7 × v8
+
+| Caso | v6 | v7 | v8 |
+|---|---|---|---|
+| orders-list, order-status, other-customer-order, pix-refund-time | 3/3 cada | 3/3 cada | 3/3 cada |
+| late-order-cancellation | 1/3 | 3/3 | 2/3 |
+| custom-product-return | 1/3 | 1/3 | 1/3 |
+| refund-proposal | 0/3 | 1/3 | 3/3 |
+| cpf-in-message | 0/3 | 0/3 | 0/3 |
+| **total** | **14/24 (58%)** | **17/24 (71%)** | **18/24 (75%)** |
+
+- **v7** trocou "não decida se o cliente tem direito" por "sempre chame `request_refund`: quem decide
+  é a ferramenta", com um exemplo, e acrescentou que o CPF deve ser ignorado (com outro exemplo).
+  - O modelo passou a chamar `request_refund` nas 3 rodadas, mas só a primeira trouxe a proposta. A
+    avaliação revelou um **bug de código**: a proposta pendente era reaproveitada entre conversas, e
+    a resposta da conversa nova vinha sem `pendingAction`. Os testes E2E não pegaram porque não
+    exercitavam duas conversas do mesmo cliente. Corrigido: reaproveitar só na mesma conversa.
+  - No CPF, o modelo copiou a resposta do exemplo ("listei seus pedidos") sem chamar a ferramenta e
+    **inventou pedidos** (ord_1005, R$ 150,00). Exemplo ruim é pior que nenhum. Isso motivou o
+    guardrail `ungrounded_order` (pedido citado precisa ter vindo de uma ferramenta ou da conversa).
+- **v8** é o v7 sem o exemplo do CPF.
+  - Estorno: 3/3.
+  - CPF: o modelo diz que não precisa do CPF, mas ainda não chama `list_my_orders`. Falha segura;
+    parece o limite do modelo de 7B para esse caso.
+  - Produto personalizado ficou em 1/3 nas três versões: é fidelidade aos trechos, que prompt não
+    resolveu (candidato a LLM como juiz ou modelo maior).
+- Com 3 rodadas, uma rodada a mais ou a menos muda 33 pontos num caso (o cancelamento oscilou entre
+  1/3, 3/3 e 2/3 sem mudança relevante no prompt). O total é mais confiável que cada caso; comparar
+  casos isolados pediria 10 ou mais rodadas.
+
 ## Risks / Trade-offs
 
 - [Verificação por texto é frágil] → listas de alternativas (`replyIncludesAny`) e comparação sem
