@@ -5,6 +5,10 @@ export type ProblemCode =
   | 'unauthorized'
   | 'validation_error'
   | 'conversation_not_found'
+  | 'action_not_found'
+  | 'action_not_pending'
+  | 'action_expired'
+  | 'orders_unavailable'
   | 'llm_unavailable'
   | 'service_unavailable'
   | 'not_found'
@@ -14,6 +18,10 @@ const TITLES: Record<ProblemCode, string> = {
   unauthorized: 'Token ausente, inválido ou expirado',
   validation_error: 'Requisição inválida',
   conversation_not_found: 'Conversa não encontrada',
+  action_not_found: 'Ação não encontrada',
+  action_not_pending: 'A ação já foi decidida',
+  action_expired: 'A ação expirou',
+  orders_unavailable: 'Sistema de pedidos indisponível no momento',
   llm_unavailable: 'Assistente indisponível no momento',
   service_unavailable: 'Serviço indisponível',
   not_found: 'Recurso não encontrado',

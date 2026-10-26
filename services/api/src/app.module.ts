@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
+import { ActionsModule } from './actions/actions.module';
 import { AuthModule } from './auth/auth.module';
 import { buildLoggerParams } from './common/logging';
 import { ProblemException } from './common/problem';
@@ -35,6 +36,7 @@ import { HealthController } from './health/health.controller';
     }),
     AuthModule,
     ConversationsModule,
+    ActionsModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -83,3 +83,6 @@ acontece depois da aprovação e nunca dizer que já foi feito.
 - Aprovação com segundo fator ou por um atendente, conforme o valor.
 - Job para marcar ações vencidas e evento/notificação quando o estorno de cartão terminar.
 - Ações com `executing` presas (o processo caiu no meio): rotina que reconsulta o `orders` com a mesma chave.
+- Ação que volta para `pending` depois de uma falha do `orders` pode vencer antes da nova aprovação, e o
+  estorno pode ter sido feito se a falha foi um tempo limite depois da escrita. A mesma rotina
+  reconsultaria o `orders` com a mesma chave antes de considerar a ação vencida.

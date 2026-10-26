@@ -7,7 +7,7 @@
 ## 2. Ações pendentes
 
 - [ ] 2.1 Criar a entidade e a migration de `app.pending_actions`; verificar com `npm run migration:run`
-- [ ] 2.2 Implementar o `ActionsService` (criar ou reaproveitar a pendente do pedido, aprovar com UPDATE condicional, executar, recusar, mensagem na conversa); verificar com testes unitários ou de integração
+- [ ] 2.2 Implementar o `ActionsService` (criar ou reaproveitar a pendente do pedido, aprovar com UPDATE condicional, executar, recusar, mensagem na conversa) e mover o `OrdersClient` para um módulo compartilhado; verificar que compila e que os testes existentes passam (o comportamento é testado pelos E2E da 2.3, contra o Postgres de verdade)
 - [ ] 2.3 Criar `POST /actions/{id}/approve` e `/reject` com os erros em problem+json; verificar com testes E2E (aprovação, repetida, vencida, outro cliente, orders fora do ar, orders recusa, recusa pelo cliente)
 
 ## 3. Ferramenta e conversa
