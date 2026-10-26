@@ -21,7 +21,7 @@ Node.js 24 · NestJS · TypeORM · PostgreSQL (schema `app`) · Ollama ou Amazon
 **Comportamentos importantes**
 - A identidade do cliente vem só do token (JWT HS256, 1 hora). Conversa de outro cliente responde
   404, igual a uma inexistente, para não revelar que existe.
-- A cada mensagem, a LLM recebe o prompt de sistema versionado (`src/prompts/assistant-v7.md`), as
+- A cada mensagem, a LLM recebe o prompt de sistema versionado (`src/prompts/assistant-v8.md`), as
   20 mensagens mais recentes da conversa e as ferramentas do agente.
 - Toda chamada à LLM é registrada em `app.llm_calls` (provedor, modelo, versão do prompt, tokens,
   latência, motivo de parada, erro) e numa linha de log com o correlation ID.
