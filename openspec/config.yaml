@@ -31,7 +31,7 @@ context: |
     versionado); orders é contract-first (o arquivo é escrito antes do código). A api gera tipos
     TypeScript a partir dos contratos e valida respostas em tempo de execução (Zod).
   - LLM e embeddings atrás de interfaces de provedor: Amazon Bedrock (Converse API, Claude Haiku;
-    Titan Text Embeddings V2) e Ollama local (qwen2.5:7b; nomic-embed-text), escolhidos por variável
+    Titan Text Embeddings V2) e Ollama local (qwen2.5:7b; bge-m3), escolhidos por variável
     de ambiente. Trocar o provedor de embeddings exige reindexar.
   - Só o Bedrock roda na AWS (us-east-1). O resto roda no Docker Compose. Credenciais da AWS vêm
     do perfil da CLI, nunca do repositório.

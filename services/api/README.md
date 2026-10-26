@@ -118,6 +118,7 @@ As regras críticas ficam no código, não no modelo. Da camada mais forte para 
 | Validações das ferramentas (pagamento estornável, valor máximo) | não |
 | Dados pessoais mascarados antes de gravar e de enviar à LLM | não |
 | Resposta que cita política sem busca bem-sucedida é trocada | não |
+| Resposta que cita um pedido que nenhuma ferramenta devolveu é trocada | não |
 | Padrões conhecidos de injeção bloqueados sem chamar a LLM | não, mas é contornável |
 | Prompt: trechos de documentos são referência, nunca instrução | sim |
 
@@ -134,9 +135,13 @@ ferramenta recusa o valor e nenhum estorno chega ao `orders`.
 - `isUngroundedPolicyAnswer`: resposta com "política" sem `search_policies` bem-sucedida na mesma
   mensagem é trocada por "não encontrei essa regra nas políticas". Limitação: uma regra inventada
   sem a palavra "política" passa; a avaliação mede esses casos.
+- `findUngroundedOrderIds`: todo `ord_…` citado na resposta precisa ter vindo de uma ferramenta
+  bem-sucedida naquela mensagem ou do histórico da conversa (inclusive do que o cliente digitou).
+  Criado depois que a avaliação flagrou o modelo "listando" pedidos que não existem.
 
 Cada guardrail acionado gera um log `"guardrail": "pii_masked" | "prompt_injection" |
-"ungrounded_policy"`, com o id da conversa e o correlation ID, sem o conteúdo da mensagem:
+"ungrounded_policy" | "ungrounded_order"`, com o id da conversa e o correlation ID, sem o conteúdo da
+mensagem:
 
 ```bash
 docker compose logs api | grep guardrail
@@ -193,6 +198,11 @@ roda no CI: precisa do modelo, é lenta e, no Bedrock, tem custo.
 | `bedrock` | `us.anthropic.claude-haiku-5-5` | Converse API; credenciais do perfil `AWS_PROFILE` |
 
 Trocar de provedor é só mudar as duas variáveis; nenhum código muda.
+
+**Status do Bedrock:** o adaptador (`src/llm/providers/bedrock.provider.ts`) está implementado e
+testado com respostas simuladas do SDK. A execução contra a conta da AWS ficou pendente: o acesso aos
+modelos foi bloqueado no nível da conta e há um chamado aberto no suporte. Todo o desenvolvimento, os
+testes manuais e a avaliação usaram o Ollama.
 
 **Por que o Ollama fica fora do Compose:** no macOS, containers não acessam a GPU do Apple Silicon,
 então o Ollama dentro do Docker usaria só a CPU e ficaria bem mais lento. Rodando direto no host, ele
