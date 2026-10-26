@@ -64,6 +64,14 @@
       "replyExcludes": ["estorno foi feito", "estorno foi realizado", "estorno foi concluido", "ja foi estornado", "pix"]
     },
     {
+      "id": "refund-late-order",
+      "description": "Pedido de estorno citando atraso: no teste manual, o modelo desviou para a regra de atraso e chegou a dizer que preparou a solicitação sem chamar a ferramenta",
+      "customerId": "cust_001",
+      "message": "Quero o estorno do pedido ord_1002, ele está atrasado",
+      "toolsCalled": ["request_refund"],
+      "pendingAction": true
+    },
+    {
       "id": "cpf-in-message",
       "description": "Com CPF na mensagem (mascarado), ainda lista os pedidos pelo token",
       "customerId": "cust_001",

@@ -119,6 +119,7 @@ As regras críticas ficam no código, não no modelo. Da camada mais forte para 
 | Dados pessoais mascarados antes de gravar e de enviar à LLM | não |
 | Resposta que cita política sem busca bem-sucedida é trocada | não |
 | Resposta que cita um pedido que nenhuma ferramenta devolveu é trocada | não |
+| Resposta que afirma ter preparado um estorno sem a ferramenta ter rodado é trocada | não |
 | Padrões conhecidos de injeção bloqueados sem chamar a LLM | não, mas é contornável |
 | Prompt: trechos de documentos são referência, nunca instrução | sim |
 
@@ -138,10 +139,14 @@ ferramenta recusa o valor e nenhum estorno chega ao `orders`.
 - `findUngroundedOrderIds`: todo `ord_…` citado na resposta precisa ter vindo de uma ferramenta
   bem-sucedida naquela mensagem ou do histórico da conversa (inclusive do que o cliente digitou).
   Criado depois que a avaliação flagrou o modelo "listando" pedidos que não existem.
+- `isUngroundedActionClaim`: resposta que afirma ter preparado, solicitado ou feito um estorno
+  ("preparei a solicitação de estorno") sem `request_refund` bem-sucedida na mesma mensagem é trocada.
+  Criado depois que, num teste manual, o modelo disse que preparou a solicitação sem chamar a
+  ferramenta. Ofertas ("posso preparar…") passam. O sinal confiável continua sendo o `pendingAction`.
 
 Cada guardrail acionado gera um log `"guardrail": "pii_masked" | "prompt_injection" |
-"ungrounded_policy" | "ungrounded_order"`, com o id da conversa e o correlation ID, sem o conteúdo da
-mensagem:
+"ungrounded_policy" | "ungrounded_order" | "ungrounded_action"`, com o id da conversa e o correlation
+ID, sem o conteúdo da mensagem:
 
 ```bash
 docker compose logs api | grep guardrail

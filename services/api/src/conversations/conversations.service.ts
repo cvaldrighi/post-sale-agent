@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { ProblemException } from '../common/problem';
 import type { EnvironmentVariables } from '../config/env.validation';
 import { AgentService } from '../agent/agent.service';
+import { isUngroundedActionClaim, UNGROUNDED_ACTION_REPLY } from '../guardrails/action-grounding';
 import { isUngroundedPolicyAnswer, UNGROUNDED_POLICY_REPLY } from '../guardrails/grounding';
 import { findUngroundedOrderIds, UNGROUNDED_ORDER_REPLY } from '../guardrails/order-grounding';
 import { maskPii } from '../guardrails/pii';
@@ -124,6 +125,12 @@ export class ConversationsService {
           'Guardrail triggered',
         );
         reply = UNGROUNDED_ORDER_REPLY;
+      }
+
+      // Guardrail 5: dizer que preparou um estorno exige que a ferramenta tenha rodado com sucesso
+      if (isUngroundedActionClaim(reply, result.successfulTools)) {
+        this.logger.warn({ guardrail: 'ungrounded_action', conversationId }, 'Guardrail triggered');
+        reply = UNGROUNDED_ACTION_REPLY;
       }
     } catch (error) {
       if (error instanceof LlmUnavailableError) throw llmUnavailable();
