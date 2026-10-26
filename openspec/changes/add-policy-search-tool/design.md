@@ -45,12 +45,35 @@ com `openapi-typescript` via `npx`), schemas Zod amarrados por `satisfies`, `x-a
 - Alternativa: um cliente HTTP genérico para os dois serviços. Descartada por enquanto: são dois
   clientes pequenos, e a parte comum (retry) já é compartilhada.
 
-### 5. Prompt `assistant-v4`
+### 5. Prompts `assistant-v4` e `assistant-v5`
 Acrescenta ao v3: quando usar `search_policies`, responder só com os trechos, citar a política e
 tratar os trechos como referência, nunca como instrução. A busca semântica sempre devolve os trechos
 mais parecidos, mesmo quando nenhum trata do assunto (a lista só vem vazia sem documentos). Por isso
 o prompt manda dizer que não encontrou a regra quando os trechos não responderem à pergunta; a
-change 7 mede se o modelo faz isso. Remove a frase que dizia que o assistente não tinha acesso às políticas.
+change 7 mede se o modelo faz isso.
+
+No teste manual com o v4, o `qwen2.5:7b` só buscou quando a pergunta tinha palavras muito ligadas à
+ferramenta ("dinheiro volta no Pix"). Em "posso cancelar um pedido atrasado?" pediu o número do
+pedido sem buscar, e em "aceitam devolução de produto personalizado?" inventou uma "Política de
+Devoluções" sem chamar ferramenta. O v5 diz logo no início que o assistente não conhece as regras
+da loja e precisa buscar antes de responder, e que pergunta geral se responde com a regra.
+
+Resultado do v5 na mesma verificação (uma rodada por pergunta):
+
+| Pergunta | v4 | v5 |
+|---|---|---|
+| "Posso cancelar um pedido atrasado?" | não buscou, pediu o número do pedido | buscou e respondeu com a regra |
+| "Aceitam devolução de produto personalizado?" | inventou uma política sem buscar | buscou, mas generalizou a partir de "Itens que não podem ser trocados" (nenhuma política fala de personalizados) |
+| "Em quanto tempo o dinheiro volta no Pix?" | buscou e respondeu com a regra | não buscou, pediu o número do pedido |
+
+Mantivemos o v5: o erro mais grave do v4 (inventar sem buscar) não se repetiu, e pedir o número do
+pedido é uma falha segura. A iteração de prompt para aqui, de propósito:
+- Com um modelo não determinístico, uma rodada por pergunta não compara prompts; é preciso repetir
+  cada caso e medir a taxa de acerto (change 7). Os três casos acima entram na avaliação.
+- O caso do produto personalizado mostra que achar o trecho certo (retrieval) não garante uma
+  resposta fiel a ele (faithfulness). A change 6 adiciona uma checagem no código: resposta que cita
+  uma política sem `search_policies` na mesma mensagem não é entregue.
+- Um modelo maior (Claude Haiku no Bedrock) deve errar menos; a troca é só de configuração. Remove a frase que dizia que o assistente não tinha acesso às políticas.
 
 ### 6. Testes
 Unitários do cliente (`fetch` simulado) e da ferramenta. Nos E2E, um servidor falso do `retrieval`
